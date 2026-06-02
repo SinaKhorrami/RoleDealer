@@ -1,0 +1,19 @@
+{
+  "name": "role-dealer",
+  "version": "1.0.0",
+  "description": "Role Distributor App for Mafia Game",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && git add dist -f && git commit -m 'Deploy' && git push origin $(git rev-parse --abbrev-ref HEAD):gh-pages"
+  },
+  "dependencies": {
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.0"
+  }
+}
