@@ -4,6 +4,12 @@
       <h1>🎭 RoleDealer</h1>
       <p class="subtitle">Add roles for your Mafia game</p>
 
+      <div v-if="hasSavedGame" class="saved-game-section">
+        <button @click="$emit('resume')" class="resume-btn">
+          ▶ Resume Saved Game
+        </button>
+      </div>
+
       <div class="form-group">
         <div class="input-wrapper">
           <input
@@ -63,7 +69,13 @@ import { ref, computed } from 'vue'
 
 export default {
   name: 'RoleInput',
-  emits: ['start'],
+  props: {
+    hasSavedGame: {
+      type: Boolean,
+      default: false
+    }
+  },
+  emits: ['start', 'resume'],
   setup(props, { emit }) {
     const roleName = ref('')
     const roleCount = ref(1)
@@ -203,6 +215,31 @@ h1 {
   text-align: center;
   color: #666;
   font-size: 0.95em;
+}
+
+.saved-game-section {
+  padding: 15px;
+  background: #e8f5e9;
+  border: 2px solid #4caf50;
+  border-radius: 10px;
+}
+
+.resume-btn {
+  width: 100%;
+  padding: 12px 20px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.resume-btn:active {
+  background: #45a049;
+  transform: scale(0.98);
 }
 
 .form-group {

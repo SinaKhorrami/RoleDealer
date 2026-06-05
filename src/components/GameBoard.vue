@@ -31,11 +31,33 @@
     <div class="footer">
       <p>Tap a tile to reveal your role</p>
     </div>
+
+    <!-- Name Input Modal -->
+    <div v-if="showNameModal" class="modal-overlay" @click.self="closeModal">
+      <div class="modal">
+        <div class="modal-content">
+          <h2>Player Name</h2>
+          <p class="role-display">Your role: <strong>{{ currentRevealedRole }}</strong></p>
+          <input
+            v-model="playerName"
+            type="text"
+            placeholder="Enter your name"
+            maxlength="20"
+            @keyup.enter="confirmName"
+            autofocus
+            class="name-input"
+          />
+          <div class="input-subtext">{{ playerName.length }}/20</div>
+          <button @click="confirmName" class="confirm-btn">Continue</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { ref } from 'vue'
+import { savePlayers } from '../utils/storage.js'
 
 export default {
   name: 'GameBoard',
@@ -45,10 +67,15 @@ export default {
       required: true
     }
   },
-  emits: ['back'],
+  emits: ['finish'],
   setup(props, { emit }) {
     const flippedTile = ref(null)
     const revealedRoles = ref(new Set())
+    const showNameModal = ref(false)
+    const playerName = ref('')
+    const currentRevealedRole = ref('')
+    const currentRevealedIndex = ref(null)
+    const playersList = ref([])
 
     const flipTile = (index) => {
       // Don't allow interaction with already revealed tiles
@@ -57,18 +84,53 @@ export default {
       }
 
       if (flippedTile.value === index) {
-        // Second click - mark as revealed and disable
-        revealedRoles.value.add(index)
-        flippedTile.value = null
+        // Second click - show name input modal
+        currentRevealedRole.value = props.roles[index].name
+        currentRevealedIndex.value = index
+        showNameModal.value = true
       } else {
         // First click - flip the tile
         flippedTile.value = index
       }
     }
 
+    const confirmName = () => {
+      if (!playerName.value.trim()) {
+        return
+      }
+
+      // Add player to list
+      playersList.value.push({
+        name: playerName.value.trim(),
+        role: currentRevealedRole.value
+      })
+
+      // Save players to localStorage
+      savePlayers(playersList.value)
+
+      // Mark as revealed
+      revealedRoles.value.add(currentRevealedIndex.value)
+
+      // Reset
+      playerName.value = ''
+      flippedTile.value = null
+      showNameModal.value = false
+
+      // Check if all roles are revealed
+      if (revealedRoles.value.size === props.roles.length) {
+        // All roles distributed, emit finish with players list
+        emit('finish', playersList.value)
+      }
+    }
+
+    const closeModal = () => {
+      // Don't allow closing modal without entering name
+    }
+
     const goBack = () => {
-      if (confirm('Are you sure you want to go back? All progress will be lost.')) {
-        emit('back')
+      if (confirm('Are you sure you want to go back? Progress will be saved.')) {
+        // Progress is already saved to localStorage
+        window.location.reload()
       }
     }
 
@@ -76,8 +138,12 @@ export default {
       flippedTile,
       flipTile,
       revealedRoles,
-      goBack,
-      roles: props.roles
+      showNameModal,
+      playerName,
+      currentRevealedRole,
+      confirmName,
+      closeModal,
+      goBack
     }
   }
 }
@@ -237,6 +303,95 @@ export default {
   opacity: 0.9;
 }
 
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal {
+  width: 90%;
+  max-width: 400px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal-content h2 {
+  margin: 0;
+  font-size: 1.5em;
+  color: #333;
+  text-align: center;
+}
+
+.role-display {
+  margin: 0;
+  text-align: center;
+  color: #666;
+  font-size: 0.95em;
+}
+
+.role-display strong {
+  color: #667eea;
+  font-size: 1.1em;
+}
+
+.name-input {
+  padding: 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1em;
+  transition: border-color 0.3s;
+  box-sizing: border-box;
+  width: 100%;
+  position: relative;
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.input-subtext {
+  font-size: 0.75em;
+  color: #999;
+  position: absolute;
+  right: 40px;
+  margin-top: -30px;
+}
+
+.confirm-btn {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.confirm-btn:active {
+  transform: scale(0.98);
+}
+
 /* Mobile-specific optimizations */
 @media (max-width: 768px) {
   .tiles-grid {
@@ -288,6 +443,15 @@ export default {
 
   .role-name {
     font-size: 0.8em;
+  }
+
+  .modal-content {
+    padding: 20px;
+    gap: 15px;
+  }
+
+  .modal-content h2 {
+    font-size: 1.2em;
   }
 }
 </style>
