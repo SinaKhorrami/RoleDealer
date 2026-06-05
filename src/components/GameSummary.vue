@@ -264,7 +264,7 @@ export default {
   font-family: inherit;
   resize: none;
   flex: 1;
-  min-height: 400px;
+  min-height: 0;
   overflow-y: auto;
   transition: border-color 0.3s;
   box-sizing: border-box;
