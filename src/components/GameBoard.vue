@@ -83,15 +83,15 @@ export default {
         return
       }
 
-      if (flippedTile.value === index) {
-        // Second click - show name input modal
+      // Flip the tile
+      flippedTile.value = index
+      
+      // Show name modal after flip animation completes (0.6s)
+      setTimeout(() => {
         currentRevealedRole.value = props.roles[index].name
         currentRevealedIndex.value = index
         showNameModal.value = true
-      } else {
-        // First click - flip the tile
-        flippedTile.value = index
-      }
+      }, 600)
     }
 
     const confirmName = () => {

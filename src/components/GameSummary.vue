@@ -1,7 +1,7 @@
 <template>
   <div class="summary-container">
     <div class="header">
-      <button @click="goBack" class="back-btn">← Back</button>
+      <button @click="goBackToSetup" class="back-btn">← Back</button>
       <h1>🎭 RoleDealer</h1>
       <div class="header-spacer"></div>
     </div>
@@ -25,7 +25,7 @@
         <textarea
           id="game-notes"
           v-model="gameNotes"
-          @input="saveNotes"
+          @input="handleNotesInput"
           placeholder="Add any notes about the game here..."
           class="notes-textarea"
         ></textarea>
@@ -35,7 +35,7 @@
         <button @click="playAgain" class="play-again-btn">
           Play Again
         </button>
-        <button @click="goBack" class="back-to-setup-btn">
+        <button @click="goBackToSetup" class="back-to-setup-btn">
           Back to Setup
         </button>
       </div>
@@ -55,34 +55,51 @@ export default {
       required: true
     }
   },
-  emits: ['back'],
+  emits: ['playAgain', 'backToSetup'],
   setup(props, { emit }) {
     const gameNotes = ref('')
 
     onMounted(() => {
       // Load saved notes
       gameNotes.value = getGameNotes()
+      // Auto-expand textarea after loading
+      setTimeout(() => autoExpandTextarea(), 0)
     })
+
+    const autoExpandTextarea = () => {
+      const textarea = document.getElementById('game-notes')
+      if (textarea) {
+        textarea.style.height = 'auto'
+        textarea.style.height = textarea.scrollHeight + 'px'
+      }
+    }
+
+    const handleNotesInput = () => {
+      saveNotes()
+      autoExpandTextarea()
+    }
 
     const saveNotes = () => {
       saveGameNotes(gameNotes.value)
     }
 
-    const goBack = () => {
-      if (confirm('Start a new game?')) {
-        emit('back')
+    const playAgain = () => {
+      if (confirm('Start a new game with the same roles?')) {
+        emit('playAgain')
       }
     }
 
-    const playAgain = () => {
-      goBack()
+    const goBackToSetup = () => {
+      if (confirm('Start a new game with different roles?')) {
+        emit('backToSetup')
+      }
     }
 
     return {
       gameNotes,
-      saveNotes,
-      goBack,
-      playAgain
+      handleNotesInput,
+      playAgain,
+      goBackToSetup
     }
   }
 }
@@ -140,14 +157,14 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  padding: 20px;
+  gap: 12px;
+  padding: 15px;
   overflow-y: auto;
 }
 
 .content h2 {
   margin: 0;
-  font-size: 1.8em;
+  font-size: 1.6em;
   color: white;
   text-align: center;
 }
@@ -155,24 +172,27 @@ export default {
 .subtitle {
   margin: 0;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95em;
+  font-size: 0.9em;
   text-align: center;
+  margin-bottom: 5px;
 }
 
 .players-list {
-  flex: 1;
+  flex: 0 1 auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   min-height: 0;
   overflow-y: auto;
+  max-height: 35vh;
+  padding-right: 5px;
 }
 
 .player-card {
   background: white;
-  border-radius: 12px;
-  padding: 16px 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   animation: slideIn 0.3s ease-out;
   flex-shrink: 0;
 }
@@ -198,33 +218,36 @@ export default {
 .player-name {
   font-weight: 700;
   color: #333;
-  font-size: 1.1em;
+  font-size: 0.95em;
   flex: 1;
 }
 
 .arrow {
   color: #667eea;
   font-weight: bold;
+  font-size: 0.85em;
 }
 
 .player-role {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
+  padding: 4px 10px;
+  border-radius: 18px;
   font-weight: 600;
-  font-size: 0.9em;
+  font-size: 0.8em;
   min-width: fit-content;
 }
 
 .notes-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   background: white;
-  padding: 15px;
+  padding: 14px;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  flex: 1;
+  min-height: 0;
 }
 
 .notes-section label {
@@ -237,13 +260,15 @@ export default {
   padding: 12px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
-  font-size: 0.95em;
+  font-size: 0.9em;
   font-family: inherit;
   resize: none;
-  min-height: 100px;
-  max-height: 150px;
+  flex: 1;
+  min-height: 400px;
+  overflow-y: auto;
   transition: border-color 0.3s;
   box-sizing: border-box;
+  line-height: 1.5;
 }
 
 .notes-textarea:focus {

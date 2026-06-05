@@ -2,7 +2,7 @@
   <div class="app">
     <RoleInput v-if="gameState === 'setup'" @start="startGame" @resume="resumeGame" :hasSavedGame="hasSavedGame" />
     <GameBoard v-else-if="gameState === 'playing'" :roles="gameRoles" @finish="finishGame" />
-    <GameSummary v-else-if="gameState === 'summary'" :players="players" @back="resetGame" />
+    <GameSummary v-else-if="gameState === 'summary'" :players="players" @playAgain="playAgain" @backToSetup="resetGame" />
   </div>
 </template>
 
@@ -11,7 +11,7 @@ import { ref, onMounted } from 'vue'
 import RoleInput from './components/RoleInput.vue'
 import GameBoard from './components/GameBoard.vue'
 import GameSummary from './components/GameSummary.vue'
-import { getGameState, getGameRoles, getPlayers, saveGameState, saveGameRoles, savePlayers } from './utils/storage.js'
+import { getGameState, getGameRoles, getPlayers, saveGameState, saveGameRoles, savePlayers, clearAllGameData } from './utils/storage.js'
 
 export default {
   name: 'App',
@@ -64,12 +64,30 @@ export default {
       savePlayers(playerList)
     }
 
+    const playAgain = () => {
+      // Reshuffle the roles
+      const shuffledRoles = [...gameRoles.value]
+      for (let i = shuffledRoles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledRoles[i], shuffledRoles[j]] = [shuffledRoles[j], shuffledRoles[i]]
+      }
+      gameRoles.value = shuffledRoles
+      
+      // Play again with same roles - go back to playing state
+      gameState.value = 'playing'
+      players.value = []
+      saveGameState('playing')
+      clearAllGameData() // Clear notes but keep roles
+      saveGameRoles(gameRoles.value)
+    }
+
     const resetGame = () => {
+      // Full reset - go back to setup
       gameState.value = 'setup'
       gameRoles.value = []
       players.value = []
       hasSavedGame.value = false
-      // Don't clear on reset, user can still resume
+      clearAllGameData() // Clear all data including notes and roles
     }
 
     return {
@@ -80,6 +98,7 @@ export default {
       startGame,
       resumeGame,
       finishGame,
+      playAgain,
       resetGame
     }
   }
