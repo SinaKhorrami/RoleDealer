@@ -6,21 +6,57 @@
         <p class="eyebrow">{{ scenario?.name || 'Scenario' }}</p>
         <h1>Role Reveal</h1>
       </div>
-      <span class="progress">{{ currentIndex + 1 }} / {{ assignments.length }}</span>
+      <span class="progress">{{ progressCount }} / {{ assignments.length }}</span>
     </header>
 
     <main class="reveal-stage">
-      <section v-if="currentAssignment && !showRole" class="reveal-card">
-        <p class="small-label">Wake this player only</p>
-        <h2>{{ currentAssignment.name }}</h2>
-        <button type="button" class="primary-btn" @click="showCurrentRole">
-          Show role for {{ currentAssignment.name }}
-        </button>
+      <section v-if="!selectedPlayer" class="reveal-card chooser-card">
+        <p class="small-label">Choose next player</p>
+        <h2>Select the player to wake</h2>
+        <p class="tile-hint">{{ unrevealedPlayers.length }} players remain. Tap a name to start that player’s reveal.</p>
+        <div class="tile-grid player-pool-grid" role="group" aria-label="Choose the next player">
+          <button
+            v-for="player in unrevealedPlayers"
+            :key="player.id"
+            type="button"
+            class="tile-card player-pool-tile"
+            @click="choosePlayer(player.id)"
+          >
+            <span class="tile-icon">{{ player.name.charAt(0).toUpperCase() }}</span>
+            <span class="tile-label">{{ player.name }}</span>
+            <span class="tile-note">Wake player</span>
+          </button>
+        </div>
       </section>
 
-      <section v-else-if="currentAssignment" :class="['reveal-card', 'role-visible', roleCardClass]">
-        <p class="small-label">{{ currentAssignment.name }}</p>
-        <h2>{{ currentAssignment.role }}</h2>
+      <section v-else-if="selectedPlayer && !selectedAssignmentId" class="reveal-card chooser-card">
+        <p class="small-label">Player selected</p>
+        <h2>{{ selectedPlayer.name }}</h2>
+        <p class="tile-hint">{{ availableTiles.length }} face-down tiles remain. Let this player tap one tile to reveal their role.</p>
+        <div class="tile-grid face-down-grid" role="group" aria-label="Choose a face-down tile">
+          <button
+            v-for="(assignment, index) in availableTiles"
+            :key="assignment.id"
+            type="button"
+            class="tile-card face-down-tile"
+            :aria-label="`Face-down tile ${index + 1}`"
+            @click="chooseTile(assignment.id)"
+          >
+            <span class="tile-icon">?</span>
+            <span class="tile-label">Face down</span>
+            <span class="tile-note">Tap to reveal</span>
+          </button>
+        </div>
+        <button type="button" class="secondary-btn" @click="clearPlayerSelection">Change player</button>
+      </section>
+
+      <section v-else-if="selectedPlayer" :class="['reveal-card', 'role-visible', roleCardClass]">
+        <p class="small-label">Selected player</p>
+        <h2>{{ selectedPlayer.name }}</h2>
+        <div class="reveal-role">
+          <span class="role-caption">Role</span>
+          <strong>{{ selectedPlayer.role }}</strong>
+        </div>
         <button type="button" class="primary-btn" @click="confirmRole">Got it</button>
       </section>
 
@@ -30,17 +66,6 @@
         <button type="button" class="primary-btn" @click="finishReveal">View Summary</button>
       </section>
     </main>
-
-    <footer class="queue">
-      <div
-        v-for="(assignment, index) in assignments"
-        :key="assignment.id"
-        :class="['queue-item', { active: index === currentIndex, done: index < currentIndex }]"
-      >
-        <span>{{ index + 1 }}</span>
-        <strong>{{ assignment.name }}</strong>
-      </div>
-    </footer>
   </div>
 </template>
 
@@ -64,16 +89,20 @@ export default {
   emits: ['finish'],
   setup(props, { emit }) {
     const assignments = ref(props.roles.map((assignment) => ({ ...assignment })))
-    const currentIndex = ref(assignments.value.findIndex((assignment) => !assignment.revealed))
-    const showRole = ref(false)
-
-    if (currentIndex.value === -1) {
-      currentIndex.value = assignments.value.length
-    }
-
-    const currentAssignment = computed(() => assignments.value[currentIndex.value] || null)
+    const selectedPlayerId = ref(null)
+    const selectedAssignmentId = ref(null)
+    const unrevealedPlayers = computed(() => assignments.value.filter((assignment) => !assignment.revealed))
+    const selectedPlayer = computed(() => {
+      return assignments.value.find((assignment) => assignment.id === selectedPlayerId.value) || null
+    })
+    const availableTiles = computed(() => {
+      return assignments.value.filter((assignment) => !assignment.revealed)
+    })
+    const progressCount = computed(() => {
+      return assignments.value.filter((assignment) => assignment.revealed).length + (selectedPlayer.value ? 1 : 0)
+    })
     const currentRoleSide = computed(() => {
-      return getRoleSide(props.scenario, currentAssignment.value?.role)
+      return getRoleSide(props.scenario, selectedPlayer.value?.role)
     })
     const roleCardClass = computed(() => {
       return currentRoleSide.value === 'Mafia' ? 'role-mafia' : 'role-citizen'
@@ -84,21 +113,34 @@ export default {
       savePlayers(assignments.value.filter((assignment) => assignment.revealed))
     }
 
-    const showCurrentRole = () => {
-      showRole.value = true
+    const choosePlayer = (playerId) => {
+      selectedPlayerId.value = playerId
+      selectedAssignmentId.value = null
+    }
+
+    const chooseTile = (assignmentId) => {
+      selectedAssignmentId.value = assignmentId
     }
 
     const confirmRole = () => {
-      if (!currentAssignment.value) return
+      if (!selectedPlayer.value || !selectedAssignmentId.value) return
 
-      assignments.value[currentIndex.value].revealed = true
-      currentIndex.value += 1
-      showRole.value = false
+      const assignment = assignments.value.find((entry) => entry.id === selectedPlayerId.value)
+      if (!assignment) return
+
+      assignment.revealed = true
+      selectedPlayerId.value = null
+      selectedAssignmentId.value = null
       persist()
 
-      if (currentIndex.value >= assignments.value.length) {
+      if (!unrevealedPlayers.value.length) {
         finishReveal()
       }
+    }
+
+    const clearPlayerSelection = () => {
+      selectedPlayerId.value = null
+      selectedAssignmentId.value = null
     }
 
     const finishReveal = () => {
@@ -114,11 +156,16 @@ export default {
 
     return {
       assignments,
-      currentIndex,
-      currentAssignment,
+      unrevealedPlayers,
+      availableTiles,
+      selectedPlayerId,
+      selectedAssignmentId,
+      selectedPlayer,
+      progressCount,
       roleCardClass,
-      showRole,
-      showCurrentRole,
+      choosePlayer,
+      chooseTile,
+      clearPlayerSelection,
       confirmRole,
       finishReveal,
       goBack
@@ -206,6 +253,10 @@ h1 {
   text-align: center;
 }
 
+.chooser-card {
+  gap: 18px;
+}
+
 .reveal-card h2 {
   max-width: 100%;
   overflow-wrap: anywhere;
@@ -215,6 +266,143 @@ h1 {
 
 .role-visible {
   border-width: 2px;
+}
+
+.tile-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.face-down-grid {
+  max-height: 44vh;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.player-pool-grid {
+  max-height: 30vh;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.tile-card {
+  border: 1px solid #3c3c3c;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #242424 0%, #161616 100%);
+  color: #f8f1e7;
+  padding: 16px 10px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tile-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: #6b6b6b;
+}
+
+.tile-card.selected {
+  border-color: #c8aa65;
+  box-shadow: 0 0 0 2px rgba(200, 170, 101, 0.12);
+}
+
+.tile-card.locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.player-tile {
+  min-height: 96px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.player-pool-tile {
+  min-height: 88px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.face-down-tile {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.face-down-tile .tile-icon {
+  width: 46px;
+  height: 46px;
+  font-size: 1.3rem;
+  background: #0f0f0f;
+  border-color: #4a4a4a;
+}
+
+.tile-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #101010;
+  border: 1px solid #3c3c3c;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.tile-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #aaa;
+  word-break: break-word;
+}
+
+.tile-note {
+  color: #8f8f8f;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.tile-hint {
+  margin: 0;
+  color: #bdb6aa;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.reveal-role {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 18px 16px;
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+
+.role-caption {
+  color: #b7b0a5;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.reveal-role strong {
+  overflow-wrap: anywhere;
+  font-size: 1.35rem;
+  line-height: 1.2;
 }
 
 .role-mafia {
@@ -251,44 +439,19 @@ h1 {
   font-size: 1rem;
 }
 
-.queue {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 14px 18px;
-  border-top: 1px solid #333;
-  background: #171717;
-}
-
-.queue-item {
-  min-width: 132px;
-  border: 1px solid #333;
+.secondary-btn {
+  border: 1px solid #3c3c3c;
   border-radius: 8px;
-  padding: 10px;
-  color: #aaa;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.queue-item span {
-  color: #777;
-  font-size: 0.8rem;
-  font-weight: 800;
-}
-
-.queue-item strong {
-  overflow-wrap: anywhere;
-}
-
-.queue-item.active {
-  border-color: #c8aa65;
+  background: #232323;
   color: #f8f1e7;
+  min-height: 44px;
+  padding: 0 16px;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.queue-item.done {
-  border-color: #2e6f45;
-  color: #9ac8a8;
+.queue {
+  display: none;
 }
 
 @media (max-width: 620px) {
@@ -308,6 +471,25 @@ h1 {
   .reveal-card {
     min-height: 300px;
     padding: 24px 18px;
+  }
+
+  .tile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tile-card {
+    min-height: 86px;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 12px 14px;
+  }
+
+  .face-down-grid {
+    max-height: 38vh;
+  }
+
+  .player-pool-grid {
+    max-height: 24vh;
   }
 }
 </style>

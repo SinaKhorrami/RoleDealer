@@ -1,160 +1,176 @@
 export const SCENARIOS = [
   {
+    id: 'custom',
+    name: 'Custom',
+    description: 'Organizer-controlled setup. Add every role manually.',
+    minPlayers: 1,
+    standardRoles: [],
+    recommendedRolesByCount: {},
+    roleDetails: [],
+    winConditions: [],
+    investigationNotes: []
+  },
+  {
     id: 'detective',
-    name: 'Detective',
-    description: 'Persian Detective setup with three Mafia roles and Citizen-side investigators.',
-    minPlayers: 9,
+    name: 'Detective / بازپرس',
+    description: 'Gorgine بازپرس setup for 10 to 15 players.',
+    minPlayers: 10,
     standardRoles: [
-      'Godfather',
-      'Matador',
-      'Saul Goodman',
-      'Detective',
-      'Doctor',
-      'Sniper',
-      'Citizen Kane',
-      'Constantine',
-      'Simple Citizens'
+      'Mafia Boss / رئیس مافیا',
+      'Nato / ناتو',
+      'Shiad / شیاد',
+      'Detective / کارآگاه',
+      'Doctor / پزشک',
+      'Investigator / محقق',
+      'Armored / رویین‌تن',
+      'Interrogator / بازپرس',
+      'Simple Citizen / شهروند ساده',
+      'Simple Citizen / شهروند ساده'
     ],
     recommendedRolesByCount: {
-      9: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Detective',
-        'Doctor',
-        'Sniper',
-        'Citizen Kane',
-        'Simple Citizens',
-        'Simple Citizens'
-      ],
       10: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Detective',
-        'Doctor',
-        'Sniper',
-        'Citizen Kane',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens'
+        'Mafia Boss / رئیس مافیا',
+        'Nato / ناتو',
+        'Shiad / شیاد',
+        'Detective / کارآگاه',
+        'Doctor / پزشک',
+        'Investigator / محقق',
+        'Armored / رویین‌تن',
+        'Interrogator / بازپرس',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده'
       ],
       11: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Detective',
-        'Doctor',
-        'Sniper',
-        'Citizen Kane',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens'
+        'Mafia Boss / رئیس مافیا',
+        'Nato / ناتو',
+        'Shiad / شیاد',
+        'Detective / کارآگاه',
+        'Doctor / پزشک',
+        'Investigator / محقق',
+        'Armored / رویین‌تن',
+        'Interrogator / بازپرس',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده'
       ],
       12: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Detective',
-        'Doctor',
-        'Sniper',
-        'Citizen Kane',
-        'Constantine',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens'
+        'Mafia Boss / رئیس مافیا',
+        'Nato / ناتو',
+        'Shiad / شیاد',
+        'Detective / کارآگاه',
+        'Doctor / پزشک',
+        'Investigator / محقق',
+        'Armored / رویین‌تن',
+        'Interrogator / بازپرس',
+        'Sniper / تک‌تیرانداز',
+        'Simple Mafia / مافیا ساده',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده'
       ],
       13: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Detective',
-        'Doctor',
-        'Sniper',
-        'Citizen Kane',
-        'Constantine',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens'
+        'Mafia Boss / رئیس مافیا',
+        'Nato / ناتو',
+        'Shiad / شیاد',
+        'Detective / کارآگاه',
+        'Doctor / پزشک',
+        'Investigator / محقق',
+        'Armored / رویین‌تن',
+        'Interrogator / بازپرس',
+        'Sniper / تک‌تیرانداز',
+        'Simple Mafia / مافیا ساده',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده'
       ],
       14: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Detective',
-        'Doctor',
-        'Sniper',
-        'Citizen Kane',
-        'Constantine',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens'
+        'Mafia Boss / رئیس مافیا',
+        'Nato / ناتو',
+        'Shiad / شیاد',
+        'Detective / کارآگاه',
+        'Doctor / پزشک',
+        'Investigator / محقق',
+        'Armored / رویین‌تن',
+        'Interrogator / بازپرس',
+        'Sniper / تک‌تیرانداز',
+        'Simple Mafia / مافیا ساده',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده'
       ],
       15: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Mafia',
-        'Detective',
-        'Doctor',
-        'Sniper',
-        'Citizen Kane',
-        'Constantine',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens'
+        'Mafia Boss / رئیس مافیا',
+        'Nato / ناتو',
+        'Shiad / شیاد',
+        'Detective / کارآگاه',
+        'Doctor / پزشک',
+        'Investigator / محقق',
+        'Armored / رویین‌تن',
+        'Interrogator / بازپرس',
+        'Sniper / تک‌تیرانداز',
+        'Simple Mafia / مافیا ساده',
+        'Simple Mafia / مافیا ساده',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده',
+        'Simple Citizen / شهروند ساده'
       ]
     },
     roleDetails: [
       {
-        name: 'Detective',
-        side: 'Citizen'
+        name: 'Mafia Boss / رئیس مافیا',
+        side: 'Mafia',
+        ability: 'Controls the night kill. The Detective gets a negative result on him.'
       },
       {
-        name: 'Doctor',
-        side: 'Citizen'
+        name: 'Nato / ناتو',
+        side: 'Mafia',
+        ability: 'Once can guess a Town special role and eliminate them if correct.'
       },
       {
-        name: 'Sniper',
-        side: 'Citizen'
+        name: 'Shiad / شیاد',
+        side: 'Mafia',
+        ability: 'Tries to hit Detective; if correct, the Detective gets false negatives.'
       },
       {
-        name: 'Citizen Kane',
-        side: 'Citizen'
+        name: 'Detective / کارآگاه',
+        side: 'Town',
+        ability: 'Checks one player each night.'
       },
       {
-        name: 'Constantine',
-        side: 'Citizen'
+        name: 'Doctor / پزشک',
+        side: 'Town',
+        ability: 'Saves one player each night.'
       },
       {
-        name: 'Simple Citizens',
-        side: 'Citizen'
+        name: 'Investigator / محقق',
+        side: 'Town',
+        ability: 'Links to a player; if Investigator dies and the linked player is Nato or Shiad, they die too.'
       },
       {
-        name: 'Godfather',
-        side: 'Mafia'
+        name: 'Armored / رویین‌تن',
+        side: 'Town',
+        ability: 'Cannot be killed by the Mafia night shot.'
       },
       {
-        name: 'Matador',
-        side: 'Mafia'
+        name: 'Interrogator / بازپرس',
+        side: 'Town',
+        ability: 'Once per game brings 2 players to defense; may force a vote between them.'
       },
       {
-        name: 'Saul Goodman',
-        side: 'Mafia'
+        name: 'Sniper / تک‌تیرانداز',
+        side: 'Town',
+        ability: 'Added in 12/13/15-player versions; one shot.'
       },
       {
-        name: 'Mafia',
-        side: 'Mafia'
+        name: 'Simple Mafia / مافیا ساده',
+        side: 'Mafia',
+        ability: 'Basic Mafia member with no extra ability.'
+      },
+      {
+        name: 'Simple Citizen / شهروند ساده',
+        side: 'Town',
+        ability: 'No night ability.'
       }
     ],
     winConditions: [],
@@ -163,8 +179,8 @@ export const SCENARIOS = [
   {
     id: 'godfather',
     name: 'Godfather',
-    description: 'Gorgine Godfather setup with Mafia, Independent, and Citizen sides.',
-    minPlayers: 10,
+    description: 'Official Gorgine Godfather: Nostradamus setup for 11 to 15 players.',
+    minPlayers: 11,
     standardRoles: [
       'Godfather',
       'Matador',
@@ -174,22 +190,11 @@ export const SCENARIOS = [
       'Leon the Professional',
       'Citizen Kane',
       'Constantine',
-      'Simple Citizens',
-      'Simple Citizens'
+      'Simple Citizen',
+      'Simple Citizen',
+      'Simple Citizen'
     ],
     recommendedRolesByCount: {
-      10: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Nostradamus',
-        'Doctor Watson',
-        'Leon the Professional',
-        'Citizen Kane',
-        'Constantine',
-        'Simple Citizens',
-        'Simple Citizens'
-      ],
       11: [
         'Godfather',
         'Matador',
@@ -199,9 +204,9 @@ export const SCENARIOS = [
         'Leon the Professional',
         'Citizen Kane',
         'Constantine',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens'
+        'Simple Citizen',
+        'Simple Citizen',
+        'Simple Citizen'
       ],
       12: [
         'Godfather',
@@ -212,10 +217,10 @@ export const SCENARIOS = [
         'Leon the Professional',
         'Citizen Kane',
         'Constantine',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens'
+        'Sniper / تک‌تیرانداز',
+        'Simple Mafia / مافیا ساده',
+        'Simple Citizen',
+        'Simple Citizen'
       ],
       13: [
         'Godfather',
@@ -226,11 +231,11 @@ export const SCENARIOS = [
         'Leon the Professional',
         'Citizen Kane',
         'Constantine',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens'
+        'Sniper / تک‌تیرانداز',
+        'Simple Mafia / مافیا ساده',
+        'Simple Citizen',
+        'Simple Citizen',
+        'Simple Citizen'
       ],
       14: [
         'Godfather',
@@ -241,12 +246,12 @@ export const SCENARIOS = [
         'Leon the Professional',
         'Citizen Kane',
         'Constantine',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens'
+        'Sniper / تک‌تیرانداز',
+        'Simple Mafia / مافیا ساده',
+        'Simple Citizen',
+        'Simple Citizen',
+        'Simple Citizen',
+        'Simple Citizen'
       ],
       15: [
         'Godfather',
@@ -257,51 +262,62 @@ export const SCENARIOS = [
         'Leon the Professional',
         'Citizen Kane',
         'Constantine',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens',
-        'Simple Citizens'
+        'Sniper / تک‌تیرانداز',
+        'Simple Mafia / مافیا ساده',
+        'Simple Mafia / مافیا ساده',
+        'Simple Citizen',
+        'Simple Citizen',
+        'Simple Citizen',
+        'Simple Citizen'
       ]
     },
     roleDetails: [
       {
         name: 'Godfather',
-        side: 'Mafia'
+        side: 'Mafia',
+        ability:
+          "Mafia leader. Has 1 vest. Can either shoot at night or use Sixth Sense to guess a player's exact role. If correct, that player dies regardless of Doctor save or vest."
       },
       {
         name: 'Matador',
-        side: 'Mafia'
+        side: 'Mafia',
+        ability: 'Blocks one player\'s ability for the night. Cannot target the same player on consecutive nights.'
       },
       {
         name: 'Saul Goodman',
-        side: 'Mafia'
+        side: 'Mafia',
+        ability: 'Becomes active after Mafia loses a teammate. Can perform recruitment or purchase actions instead of a normal Mafia attack.'
       },
       {
         name: 'Nostradamus',
-        side: 'Independent'
+        side: 'Independent',
+        ability:
+          'During introduction night chooses 3 players. Moderator tells him how many Mafia are among them, then he chooses whether to side with Mafia or Citizens. Wins with the side he chooses.'
       },
       {
         name: 'Doctor Watson',
-        side: 'Citizen'
+        side: 'Citizen',
+        ability: 'Main protective role. Can save players from night kills.'
       },
       {
         name: 'Leon the Professional',
-        side: 'Citizen'
+        side: 'Citizen',
+        ability: "Town's shooter. Has a night shot and must use it carefully."
       },
       {
         name: 'Citizen Kane',
-        side: 'Citizen'
+        side: 'Citizen',
+        ability: 'Information-gathering citizen role.'
       },
       {
         name: 'Constantine',
-        side: 'Citizen'
+        side: 'Citizen',
+        ability: 'Support / information citizen role.'
       },
       {
-        name: 'Simple Citizens',
-        side: 'Citizen'
+        name: 'Simple Citizen',
+        side: 'Citizen',
+        ability: 'No special ability. Relies on discussion and voting.'
       }
     ],
     winConditions: [],
