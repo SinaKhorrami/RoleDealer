@@ -788,12 +788,95 @@ h3 {
     padding: 20px;
   }
 
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  h2 {
+    font-size: 0.86rem;
+  }
+
+  h3 {
+    font-size: 0.78rem;
+  }
+
+  .subtitle,
+  .scenario-description,
+  .scenario-meta,
+  .helper-text,
+  .rule-row p,
+  .info-panel p {
+    font-size: 0.82rem;
+  }
+
+  .scenario-name {
+    font-size: 0.92rem;
+  }
+
+  .count-pill,
+  .role-tag,
+  .rule-row span,
+  .player-input-row span {
+    font-size: 0.74rem;
+  }
+
+  .stepper-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 1rem;
+  }
+
+  .number-input,
+  .text-input {
+    min-height: 38px;
+    padding: 10px 11px;
+    font-size: 0.84rem;
+  }
+
+  .add-btn,
+  .start-btn,
+  .secondary-btn,
+  .remove-btn {
+    min-height: 38px;
+    font-size: 0.78rem;
+  }
+
+  .add-btn {
+    padding: 0 14px;
+  }
+
+  .start-btn,
+  .secondary-btn {
+    padding: 12px 14px;
+  }
+
+  .remove-btn {
+    padding: 6px 9px;
+  }
+
+  .error-messages {
+    gap: 4px;
+  }
+
+  .error {
+    font-size: 0.76rem;
+    line-height: 1.35;
+  }
+
   .scenario-grid,
   .rules-grid,
   .custom-role-form,
-  .player-inputs,
   .player-form {
     grid-template-columns: 1fr;
+  }
+
+  .player-inputs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .player-input-row {
+    gap: 5px;
   }
 
   .add-btn {

@@ -1,12 +1,20 @@
 <template>
   <div class="summary-container">
     <header class="summary-header">
-      <button @click="goBackToSetup" class="ghost-btn">Back</button>
       <div>
         <p class="eyebrow">{{ scenario?.name || 'Scenario' }}</p>
         <h1>Game Summary</h1>
       </div>
-      <span class="progress">{{ players.length }} players</span>
+      <div class="top-actions">
+        <span class="progress">{{ players.length }} players</span>
+        <button type="button" class="menu-btn" aria-label="Open menu" @click="drawerOpen = true">
+          <span class="menu-icon" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
+      </div>
     </header>
 
     <main class="summary-content">
@@ -197,12 +205,18 @@
           ></textarea>
         </label>
       </section>
-
-      <footer class="actions-bar">
-        <button @click="playAgain" class="primary-btn">Play Again</button>
-        <button @click="goBackToSetup" class="secondary-btn">New Setup</button>
-      </footer>
     </main>
+
+    <DrawerMenu
+      :open="drawerOpen"
+      title="Game Menu"
+      eyebrow="Summary"
+      @close="drawerOpen = false"
+    >
+      <button type="button" class="drawer-action-btn" @click="playAgain">Play Again</button>
+      <button type="button" class="drawer-action-btn" @click="goBackToSetup">New Setup</button>
+      <button type="button" class="drawer-action-btn" @click="goBackToSetup">Back</button>
+    </DrawerMenu>
 
     <div v-if="confirmDialog" class="dialog-backdrop" role="presentation" @click="closeConfirmDialog">
       <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title" @click.stop>
@@ -222,11 +236,15 @@
 
 <script>
 import { computed, nextTick, ref, onMounted } from 'vue'
+import DrawerMenu from './DrawerMenu.vue'
 import { getRoleSide } from '../scenarios.js'
 import { getGameNotes, saveGameNotes, savePlayers } from '../utils/storage.js'
 
 export default {
   name: 'GameSummary',
+  components: {
+    DrawerMenu
+  },
   props: {
     players: {
       type: Array,
@@ -246,6 +264,7 @@ export default {
     const activeNightIndex = ref(0)
     const editingPlayerId = ref(null)
     const confirmDialog = ref(null)
+    const drawerOpen = ref(false)
     const graveyardListRef = ref(null)
     const graveyardRowRefs = ref({})
     const sideClassByName = {
@@ -475,6 +494,7 @@ export default {
       activeNightIndex,
       editingPlayerId,
       confirmDialog,
+      drawerOpen,
       graveyardListRef,
       playerRows,
       activePlayers,
@@ -519,13 +539,20 @@ export default {
   border-bottom: 1px solid #333;
 }
 
+.top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .summary-content {
   width: min(900px, 100%);
   margin: 0 auto;
   padding: 22px;
   box-sizing: border-box;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 14px;
   height: 100%;
   min-height: 0;
@@ -602,6 +629,31 @@ h2 {
 .progress {
   color: #c8aa65;
   font-weight: 800;
+}
+
+.menu-btn {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: #252525;
+  color: #f8f1e7;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.menu-icon {
+  width: 18px;
+  display: grid;
+  gap: 3px;
+}
+
+.menu-icon span {
+  display: block;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
 }
 
 .side-summary {
@@ -960,12 +1012,6 @@ h2 {
   border-color: #c8aa65;
 }
 
-.actions-bar {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
 .ghost-btn,
 .primary-btn,
 .secondary-btn {
@@ -991,6 +1037,18 @@ h2 {
 .secondary-btn {
   background: #2f2f2f;
   color: #f8f1e7;
+}
+
+.drawer-action-btn {
+  border: 0;
+  border-radius: 8px;
+  background: #252525;
+  color: #f8f1e7;
+  min-height: 44px;
+  padding: 0 16px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: left;
 }
 
 .dialog-backdrop {
@@ -1053,7 +1111,55 @@ h2 {
     grid-template-columns: 1fr;
   }
 
-  .summary-header > div,
+  .eyebrow {
+    font-size: 0.68rem;
+  }
+
+  h1 {
+    font-size: 1rem;
+  }
+
+  h2 {
+    font-size: 0.92rem;
+  }
+
+  .progress,
+  .side-pill,
+  .player-role,
+  .death-pill,
+  .section-label,
+  .night-tab-btn,
+  .notes-state,
+  .night-note-editor span,
+  .dialog-message,
+  .tab-btn,
+  .inner-tab-btn,
+  .player-name-display,
+  .player-name-input,
+  .status-select {
+    font-size: 0.76rem;
+  }
+
+  .notes-textarea {
+    font-size: 0.88rem;
+  }
+
+  .player-name-input,
+  .status-select,
+  .notes-textarea {
+    min-height: 34px;
+    padding: 10px 11px;
+  }
+
+  .player-name-input {
+    font-size: 0.82rem;
+  }
+
+  .status-select {
+    font-size: 0.74rem;
+  }
+
+  .summary-header > div:first-child,
   .summary-header .progress {
     display: none;
   }
@@ -1064,23 +1170,41 @@ h2 {
 
   .summary-content {
     padding: 14px;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
     gap: 10px;
-  }
-
-  .actions-bar {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    padding-top: 8px;
-    border-top: 1px solid #333;
-    background: #111;
   }
 
   .primary-btn,
   .secondary-btn {
-    min-height: 40px;
+    min-height: 38px;
+    padding: 0 14px;
     border: 1px solid #3c3c3c;
     font-size: 0.86rem;
+  }
+
+  .ghost-btn {
+    min-height: 34px;
+    padding: 0 10px;
+    font-size: 0.8rem;
+  }
+
+  .menu-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .drawer-action-btn {
+    min-height: 40px;
+    font-size: 0.86rem;
+  }
+
+  .tab-btn,
+  .inner-tab-btn,
+  .night-tab-btn,
+  .dialog-primary-btn,
+  .dialog-secondary-btn {
+    min-height: 36px;
+    font-size: 0.78rem;
   }
 
   .panel-header {
@@ -1134,6 +1258,10 @@ h2 {
     min-height: 32px;
     padding: 0 6px;
     font-size: 0.72rem;
+  }
+
+  .dialog-message {
+    font-size: 0.8rem;
   }
 }
 </style>
