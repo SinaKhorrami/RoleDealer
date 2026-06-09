@@ -176,19 +176,25 @@ export function useGameSummary(props, emit) {
           player.disabledReason = 'voting'
         }
 
-        persistPlayers()
         if (player.disabled) {
           playerSection.value = 'graveyard'
           activeTab.value = 'players'
-          nextTick(() => {
-            const row = graveyardRowRefs.value[player.id]
-            row?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center'
-            })
-          })
         } else {
           playerSection.value = 'active'
+        }
+
+        persistPlayers()
+
+        if (player.disabled) {
+          nextTick(() => {
+            nextTick(() => {
+              const row = graveyardRowRefs.value[player.id]
+              row?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+              })
+            })
+          })
         }
       }
     })

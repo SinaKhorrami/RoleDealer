@@ -29,7 +29,7 @@
                     :class="['tab-btn', { active: activeTab === 'players' }]"
                     @click="activeTab = 'players'"
                 >
-                    Players
+                    Game
                 </button>
                 <button
                     type="button"
