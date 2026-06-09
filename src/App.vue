@@ -1,8 +1,15 @@
 <template>
   <div class="app">
     <RoleInput v-if="gameState === 'setup'" @start="startGame" @resume="resumeGame" :hasSavedGame="hasSavedGame" />
-    <GameBoard v-else-if="gameState === 'playing'" :roles="gameRoles" @finish="finishGame" />
-    <GameSummary v-else-if="gameState === 'summary'" :players="players" @playAgain="playAgain" @backToSetup="resetGame" />
+    <GameBoard v-else-if="gameState === 'playing'" :roles="gameRoles" :scenario="scenario" @finish="finishGame" />
+    <GameSummary
+      v-else-if="gameState === 'summary'"
+      :players="players"
+      :scenario="scenario"
+      @updatePlayers="updatePlayers"
+      @playAgain="playAgain"
+      @backToSetup="resetGame"
+    />
   </div>
 </template>
 
@@ -11,7 +18,7 @@ import { ref, onMounted } from 'vue'
 import RoleInput from './components/RoleInput.vue'
 import GameBoard from './components/GameBoard.vue'
 import GameSummary from './components/GameSummary.vue'
-import { getGameState, getGameRoles, getPlayers, saveGameState, saveGameRoles, savePlayers, clearAllGameData } from './utils/storage.js'
+import { getGameState, getGameRoles, getGameScenario, getPlayers, saveGameState, saveGameRoles, saveGameScenario, savePlayers, clearAllGameData } from './utils/storage.js'
 
 export default {
   name: 'App',
@@ -24,6 +31,7 @@ export default {
     const gameState = ref('setup')
     const gameRoles = ref([])
     const players = ref([])
+    const scenario = ref(null)
     const hasSavedGame = ref(false)
 
     onMounted(() => {
@@ -34,17 +42,25 @@ export default {
       }
     })
 
-    const startGame = (roles) => {
-      gameRoles.value = roles
+    const startGame = ({ scenario: selectedScenario, assignments }) => {
+      clearAllGameData()
+      scenario.value = selectedScenario
+      gameRoles.value = assignments
+      players.value = []
       gameState.value = 'playing'
+      hasSavedGame.value = true
       saveGameState('playing')
-      saveGameRoles(roles)
+      saveGameScenario(selectedScenario)
+      saveGameRoles(assignments)
     }
 
     const resumeGame = () => {
       const savedState = getGameState()
       const savedRoles = getGameRoles()
+      const savedScenario = getGameScenario()
       const savedPlayers = getPlayers()
+
+      scenario.value = savedScenario
 
       if (savedState === 'summary' && savedPlayers) {
         // Resume to summary
@@ -64,21 +80,41 @@ export default {
       savePlayers(playerList)
     }
 
-    const playAgain = () => {
-      // Reshuffle the roles
-      const shuffledRoles = [...gameRoles.value]
-      for (let i = shuffledRoles.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffledRoles[i], shuffledRoles[j]] = [shuffledRoles[j], shuffledRoles[i]]
+    const updatePlayers = (playerList) => {
+      players.value = playerList
+      const playersById = new Map(playerList.map((player) => [player.id, player]))
+      gameRoles.value = gameRoles.value.map((assignment) => ({
+        ...assignment,
+        ...(playersById.get(assignment.id) || {})
+      }))
+    }
+
+    const shuffleArray = (items) => {
+      const shuffled = [...items]
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
       }
-      gameRoles.value = shuffledRoles
-      
-      // Play again with same roles - go back to playing state
+      return shuffled
+    }
+
+    const playAgain = () => {
+      const names = shuffleArray(gameRoles.value.map((assignment) => assignment.name))
+      const roles = shuffleArray(gameRoles.value.map((assignment) => assignment.role))
+
+      gameRoles.value = names.map((name, index) => ({
+        id: `${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`,
+        name,
+        role: roles[index],
+        revealed: false
+      }))
+
       gameState.value = 'playing'
       players.value = []
-      saveGameState('playing')
       clearAllGameData() // Clear notes but keep roles
+      saveGameScenario(scenario.value)
       saveGameRoles(gameRoles.value)
+      saveGameState('playing')
     }
 
     const resetGame = () => {
@@ -86,6 +122,7 @@ export default {
       gameState.value = 'setup'
       gameRoles.value = []
       players.value = []
+      scenario.value = null
       hasSavedGame.value = false
       clearAllGameData() // Clear all data including notes and roles
     }
@@ -94,11 +131,13 @@ export default {
       gameState,
       gameRoles,
       players,
+      scenario,
       hasSavedGame,
       startGame,
       resumeGame,
       finishGame,
       playAgain,
+      updatePlayers,
       resetGame
     }
   }
@@ -108,7 +147,7 @@ export default {
 <style scoped>
 .app {
   width: 100%;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 </style>

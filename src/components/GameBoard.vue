@@ -1,63 +1,78 @@
 <template>
-  <div class="game-board-container">
-    <div class="header">
-      <button @click="goBack" class="back-btn">← Back</button>
-      <h1>🎭 RoleDealer</h1>
-      <div class="header-spacer"></div>
-    </div>
-
-    <div class="tiles-grid">
-      <div
-        v-for="(role, index) in roles"
-        :key="role.id"
-        class="tile-wrapper"
-      >
-        <div
-          :class="['tile', { flipped: flippedTile === index, disabled: revealedRoles.has(index) }]"
-          @click="flipTile(index)"
-        >
-          <div class="tile-inner">
-            <div class="tile-front">
-              <span class="tile-number">{{ index + 1 }}</span>
-            </div>
-            <div class="tile-back">
-              <span class="role-name">{{ role.name }}</span>
-            </div>
-          </div>
-        </div>
+  <div class="reveal-container">
+    <header class="top-bar">
+      <button type="button" class="ghost-btn" @click="goBack">Back</button>
+      <div>
+        <p class="eyebrow">{{ scenario?.name || 'Scenario' }}</p>
+        <h1>Role Reveal</h1>
       </div>
-    </div>
+      <span class="progress">{{ progressCount }} / {{ assignments.length }}</span>
+    </header>
 
-    <div class="footer">
-      <p>Tap a tile to reveal your role</p>
-    </div>
-
-    <!-- Name Input Modal -->
-    <div v-if="showNameModal" class="modal-overlay" @click.self="closeModal">
-      <div class="modal">
-        <div class="modal-content">
-          <h2>Player Name</h2>
-          <p class="role-display">Your role: <strong>{{ currentRevealedRole }}</strong></p>
-          <input
-            v-model="playerName"
-            type="text"
-            placeholder="Enter your name"
-            maxlength="20"
-            @keyup.enter="confirmName"
-            autofocus
-            class="name-input"
-          />
-          <div class="input-subtext">{{ playerName.length }}/20</div>
-          <button @click="confirmName" class="confirm-btn">Continue</button>
+    <main class="reveal-stage">
+      <section v-if="!selectedPlayer" class="reveal-card chooser-card">
+        <p class="small-label">Choose next player</p>
+        <h2>Select the player to wake</h2>
+        <p class="tile-hint">{{ unrevealedPlayers.length }} players remain. Tap a name to start that player’s reveal.</p>
+        <div class="tile-grid player-pool-grid" role="group" aria-label="Choose the next player">
+          <button
+            v-for="player in unrevealedPlayers"
+            :key="player.id"
+            type="button"
+            class="tile-card player-pool-tile"
+            @click="choosePlayer(player.id)"
+          >
+            <span class="tile-icon">{{ player.name.charAt(0).toUpperCase() }}</span>
+            <span class="tile-label">{{ player.name }}</span>
+            <span class="tile-note">Wake player</span>
+          </button>
         </div>
-      </div>
-    </div>
+      </section>
+
+      <section v-else-if="selectedPlayer && !selectedAssignmentId" class="reveal-card chooser-card">
+        <p class="small-label">Player selected</p>
+        <h2>{{ selectedPlayer.name }}</h2>
+        <p class="tile-hint">{{ availableTiles.length }} face-down tiles remain. Let this player tap one tile to reveal their role.</p>
+        <div class="tile-grid face-down-grid" role="group" aria-label="Choose a face-down tile">
+          <button
+            v-for="(assignment, index) in availableTiles"
+            :key="assignment.id"
+            type="button"
+            class="tile-card face-down-tile"
+            :aria-label="`Face-down tile ${index + 1}`"
+            @click="chooseTile(assignment.id)"
+          >
+            <span class="tile-icon">?</span>
+            <span class="tile-label">Face down</span>
+            <span class="tile-note">Tap to reveal</span>
+          </button>
+        </div>
+        <button type="button" class="secondary-btn" @click="clearPlayerSelection">Change player</button>
+      </section>
+
+      <section v-else-if="selectedPlayer" :class="['reveal-card', 'role-visible', roleCardClass]">
+        <p class="small-label">Selected player</p>
+        <h2>{{ selectedPlayer.name }}</h2>
+        <div class="reveal-role">
+          <span class="role-caption">Role</span>
+          <strong>{{ selectedPlayer.role }}</strong>
+        </div>
+        <button type="button" class="primary-btn" @click="confirmRole">Got it</button>
+      </section>
+
+      <section v-else class="reveal-card">
+        <p class="small-label">Complete</p>
+        <h2>All roles are assigned</h2>
+        <button type="button" class="primary-btn" @click="finishReveal">View Summary</button>
+      </section>
+    </main>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue'
-import { savePlayers } from '../utils/storage.js'
+import { computed, ref } from 'vue'
+import { getRoleSide } from '../scenarios.js'
+import { saveGameRoles, savePlayers } from '../utils/storage.js'
 
 export default {
   name: 'GameBoard',
@@ -65,84 +80,94 @@ export default {
     roles: {
       type: Array,
       required: true
+    },
+    scenario: {
+      type: Object,
+      default: null
     }
   },
   emits: ['finish'],
   setup(props, { emit }) {
-    const flippedTile = ref(null)
-    const revealedRoles = ref(new Set())
-    const showNameModal = ref(false)
-    const playerName = ref('')
-    const currentRevealedRole = ref('')
-    const currentRevealedIndex = ref(null)
-    const playersList = ref([])
+    const assignments = ref(props.roles.map((assignment) => ({ ...assignment })))
+    const selectedPlayerId = ref(null)
+    const selectedAssignmentId = ref(null)
+    const unrevealedPlayers = computed(() => assignments.value.filter((assignment) => !assignment.revealed))
+    const selectedPlayer = computed(() => {
+      return assignments.value.find((assignment) => assignment.id === selectedPlayerId.value) || null
+    })
+    const availableTiles = computed(() => {
+      return assignments.value.filter((assignment) => !assignment.revealed)
+    })
+    const progressCount = computed(() => {
+      return assignments.value.filter((assignment) => assignment.revealed).length + (selectedPlayer.value ? 1 : 0)
+    })
+    const currentRoleSide = computed(() => {
+      return getRoleSide(props.scenario, selectedPlayer.value?.role)
+    })
+    const roleCardClass = computed(() => {
+      return currentRoleSide.value === 'Mafia' ? 'role-mafia' : 'role-citizen'
+    })
 
-    const flipTile = (index) => {
-      // Don't allow interaction with already revealed tiles
-      if (revealedRoles.value.has(index)) {
-        return
-      }
-
-      // Flip the tile
-      flippedTile.value = index
-      
-      // Show name modal after flip animation completes (0.6s)
-      setTimeout(() => {
-        currentRevealedRole.value = props.roles[index].name
-        currentRevealedIndex.value = index
-        showNameModal.value = true
-      }, 600)
+    const persist = () => {
+      saveGameRoles(assignments.value)
+      savePlayers(assignments.value.filter((assignment) => assignment.revealed))
     }
 
-    const confirmName = () => {
-      if (!playerName.value.trim()) {
-        return
-      }
+    const choosePlayer = (playerId) => {
+      selectedPlayerId.value = playerId
+      selectedAssignmentId.value = null
+    }
 
-      // Add player to list
-      playersList.value.push({
-        name: playerName.value.trim(),
-        role: currentRevealedRole.value
-      })
+    const chooseTile = (assignmentId) => {
+      selectedAssignmentId.value = assignmentId
+    }
 
-      // Save players to localStorage
-      savePlayers(playersList.value)
+    const confirmRole = () => {
+      if (!selectedPlayer.value || !selectedAssignmentId.value) return
 
-      // Mark as revealed
-      revealedRoles.value.add(currentRevealedIndex.value)
+      const assignment = assignments.value.find((entry) => entry.id === selectedPlayerId.value)
+      if (!assignment) return
 
-      // Reset
-      playerName.value = ''
-      flippedTile.value = null
-      showNameModal.value = false
+      assignment.revealed = true
+      selectedPlayerId.value = null
+      selectedAssignmentId.value = null
+      persist()
 
-      // Check if all roles are revealed
-      if (revealedRoles.value.size === props.roles.length) {
-        // All roles distributed, emit finish with players list
-        emit('finish', playersList.value)
+      if (!unrevealedPlayers.value.length) {
+        finishReveal()
       }
     }
 
-    const closeModal = () => {
-      // Don't allow closing modal without entering name
+    const clearPlayerSelection = () => {
+      selectedPlayerId.value = null
+      selectedAssignmentId.value = null
+    }
+
+    const finishReveal = () => {
+      emit('finish', assignments.value)
     }
 
     const goBack = () => {
-      if (confirm('Are you sure you want to go back? Progress will be saved.')) {
-        // Progress is already saved to localStorage
+      if (confirm('Go back to setup? Current reveal progress is saved.')) {
+        persist()
         window.location.reload()
       }
     }
 
     return {
-      flippedTile,
-      flipTile,
-      revealedRoles,
-      showNameModal,
-      playerName,
-      currentRevealedRole,
-      confirmName,
-      closeModal,
+      assignments,
+      unrevealedPlayers,
+      availableTiles,
+      selectedPlayerId,
+      selectedAssignmentId,
+      selectedPlayer,
+      progressCount,
+      roleCardClass,
+      choosePlayer,
+      chooseTile,
+      clearPlayerSelection,
+      confirmRole,
+      finishReveal,
       goBack
     }
   }
@@ -150,308 +175,321 @@ export default {
 </script>
 
 <style scoped>
-.game-board-container {
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  overflow: hidden;
+.reveal-container {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: #111;
+  color: #f8f1e7;
 }
 
-.header {
-  padding: 15px 20px;
-  background: rgba(0, 0, 0, 0.1);
+.top-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  background: #1d1d1d;
+  border-bottom: 1px solid #333;
+}
+
+.eyebrow,
+.small-label {
+  margin: 0;
+  color: #c8aa65;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+h1,
+h2 {
+  margin: 0;
+}
+
+h1 {
+  font-size: 1.25rem;
+}
+
+.progress {
+  font-weight: 800;
+  color: #c8aa65;
+}
+
+.ghost-btn,
+.primary-btn {
+  border: 0;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ghost-btn {
+  background: #2c2c2c;
+  color: #f8f1e7;
+  padding: 10px 12px;
+}
+
+.reveal-stage {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  backdrop-filter: blur(10px);
+  justify-content: center;
+  padding: 28px;
 }
 
-.back-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  padding: 8px 12px;
+.reveal-card {
+  width: min(620px, 100%);
+  min-height: 340px;
+  border: 1px solid #3c3c3c;
   border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.9em;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.back-btn:active {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(0.95);
-}
-
-.header h1 {
-  margin: 0;
-  color: white;
-  font-size: 1.5em;
-  flex: 1;
+  background: #1b1b1b;
+  padding: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
   text-align: center;
 }
 
-.header-spacer {
-  width: 60px;
+.chooser-card {
+  gap: 18px;
 }
 
-.tiles-grid {
-  flex: 1;
+.reveal-card h2 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: clamp(2rem, 7vw, 4rem);
+  line-height: 1.05;
+}
+
+.role-visible {
+  border-width: 2px;
+}
+
+.tile-grid {
+  width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 12px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.face-down-grid {
+  max-height: 44vh;
   overflow-y: auto;
-  align-content: start;
+  padding-right: 2px;
 }
 
-.tile-wrapper {
-  perspective: 1000px;
-  width: 100%;
+.player-pool-grid {
+  max-height: 30vh;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
-.tile {
-  width: 100%;
-  aspect-ratio: 1;
-  position: relative;
+.tile-card {
+  border: 1px solid #3c3c3c;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #242424 0%, #161616 100%);
+  color: #f8f1e7;
+  padding: 16px 10px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   cursor: pointer;
-  transform-style: preserve-3d;
-  transition: transform 0.6s;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.tile.flipped {
-  transform: rotateY(180deg);
+.tile-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: #6b6b6b;
 }
 
-.tile.disabled {
-  opacity: 0.5;
+.tile-card.selected {
+  border-color: #c8aa65;
+  box-shadow: 0 0 0 2px rgba(200, 170, 101, 0.12);
+}
+
+.tile-card.locked {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-.tile.disabled .tile-front {
-  background: linear-gradient(135deg, #999 0%, #666 100%);
-  border-color: rgba(255, 255, 255, 0.1);
+.player-tile {
+  min-height: 96px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
 }
 
-.tile-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
+.player-pool-tile {
+  min-height: 88px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
 }
 
-.tile-front,
-.tile-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
+.face-down-tile {
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  font-weight: bold;
-  backface-visibility: hidden;
-}
-
-.tile-front {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tile-number {
-  font-size: 1.8em;
-  font-weight: 700;
-}
-
-.tile-back {
-  background: white;
-  border: 2px solid rgba(0, 0, 0, 0.1);
-  color: #333;
-  transform: rotateY(180deg);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  padding: 10px;
-}
-
-.role-name {
-  font-size: 1.1em;
   text-align: center;
+}
+
+.face-down-tile .tile-icon {
+  width: 46px;
+  height: 46px;
+  font-size: 1.3rem;
+  background: #0f0f0f;
+  border-color: #4a4a4a;
+}
+
+.tile-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #101010;
+  border: 1px solid #3c3c3c;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.tile-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #aaa;
   word-break: break-word;
-  max-height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.footer {
-  padding: 15px 20px;
-  text-align: center;
-  background: rgba(0, 0, 0, 0.1);
-  color: white;
-  backdrop-filter: blur(10px);
+.tile-note {
+  color: #8f8f8f;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-.footer p {
+.tile-hint {
   margin: 0;
-  font-size: 0.9em;
-  opacity: 0.9;
+  color: #bdb6aa;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
+.reveal-role {
   width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 18px 16px;
+  display: grid;
+  gap: 8px;
+  text-align: left;
 }
 
-.modal {
-  width: 90%;
-  max-width: 400px;
+.role-caption {
+  color: #b7b0a5;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-.modal-content {
-  background: white;
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.reveal-role strong {
+  overflow-wrap: anywhere;
+  font-size: 1.35rem;
+  line-height: 1.2;
 }
 
-.modal-content h2 {
-  margin: 0;
-  font-size: 1.5em;
-  color: #333;
-  text-align: center;
+.role-mafia {
+  background: #2b1414;
+  border-color: #b33a3a;
 }
 
-.role-display {
-  margin: 0;
-  text-align: center;
-  color: #666;
-  font-size: 0.95em;
+.role-citizen {
+  background: #142718;
+  border-color: #3d9a55;
 }
 
-.role-display strong {
-  color: #667eea;
-  font-size: 1.1em;
+.role-citizen .small-label {
+  color: #95d7a3;
 }
 
-.name-input {
-  padding: 12px 15px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  font-size: 1em;
-  transition: border-color 0.3s;
-  box-sizing: border-box;
-  width: 100%;
-  position: relative;
+.role-citizen .primary-btn {
+  background: #2f8f48;
 }
 
-.name-input:focus {
-  outline: none;
-  border-color: #667eea;
+.role-mafia .small-label {
+  color: #f08f8f;
 }
 
-.input-subtext {
-  font-size: 0.75em;
-  color: #999;
-  position: absolute;
-  right: 40px;
-  margin-top: -30px;
+.role-mafia .primary-btn {
+  background: #b33a3a;
 }
 
-.confirm-btn {
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.primary-btn {
+  min-height: 52px;
+  padding: 0 24px;
+  background: #9f2929;
   color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 1em;
-  font-weight: 600;
+  font-size: 1rem;
+}
+
+.secondary-btn {
+  border: 1px solid #3c3c3c;
+  border-radius: 8px;
+  background: #232323;
+  color: #f8f1e7;
+  min-height: 44px;
+  padding: 0 16px;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.3s;
 }
 
-.confirm-btn:active {
-  transform: scale(0.98);
+.queue {
+  display: none;
 }
 
-/* Mobile-specific optimizations */
-@media (max-width: 768px) {
-  .tiles-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    padding: 15px;
+@media (max-width: 620px) {
+  .top-bar {
+    grid-template-columns: 1fr auto;
   }
 
-  .header h1 {
-    font-size: 1.2em;
+  .ghost-btn {
+    grid-column: 1 / -1;
+    justify-self: start;
   }
 
-  .tile-number {
-    font-size: 1.5em;
+  .reveal-stage {
+    padding: 16px;
   }
 
-  .role-name {
-    font-size: 0.9em;
-  }
-}
-
-@media (max-width: 480px) {
-  .tiles-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    padding: 12px;
+  .reveal-card {
+    min-height: 300px;
+    padding: 24px 18px;
   }
 
-  .header {
-    padding: 12px 15px;
+  .tile-grid {
+    grid-template-columns: 1fr;
   }
 
-  .back-btn {
-    font-size: 0.8em;
-    padding: 6px 10px;
+  .tile-card {
+    min-height: 86px;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 12px 14px;
   }
 
-  .header h1 {
-    font-size: 1.1em;
+  .face-down-grid {
+    max-height: 38vh;
   }
 
-  .header-spacer {
-    width: 40px;
-  }
-
-  .tile-number {
-    font-size: 1.3em;
-  }
-
-  .role-name {
-    font-size: 0.8em;
-  }
-
-  .modal-content {
-    padding: 20px;
-    gap: 15px;
-  }
-
-  .modal-content h2 {
-    font-size: 1.2em;
+  .player-pool-grid {
+    max-height: 24vh;
   }
 }
 </style>

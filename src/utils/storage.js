@@ -2,6 +2,7 @@
 const STORAGE_KEYS = {
   GAME_STATE: 'roledealer_gameState',
   GAME_ROLES: 'roledealer_gameRoles',
+  GAME_SCENARIO: 'roledealer_gameScenario',
   PLAYERS: 'roledealer_players',
   GAME_NOTES: 'roledealer_gameNotes'
 }
@@ -43,6 +44,26 @@ export function saveGameRoles(roles) {
     localStorage.setItem(STORAGE_KEYS.GAME_ROLES, JSON.stringify(roles))
   } catch (e) {
     console.error('Error saving game roles:', e)
+  }
+}
+
+// Get game scenario
+export function getGameScenario() {
+  try {
+    const scenario = localStorage.getItem(STORAGE_KEYS.GAME_SCENARIO)
+    return scenario ? JSON.parse(scenario) : null
+  } catch (e) {
+    console.error('Error reading game scenario:', e)
+    return null
+  }
+}
+
+// Save game scenario
+export function saveGameScenario(scenario) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.GAME_SCENARIO, JSON.stringify(scenario))
+  } catch (e) {
+    console.error('Error saving game scenario:', e)
   }
 }
 
@@ -91,6 +112,7 @@ export function clearAllGameData() {
   try {
     localStorage.removeItem(STORAGE_KEYS.GAME_STATE)
     localStorage.removeItem(STORAGE_KEYS.GAME_ROLES)
+    localStorage.removeItem(STORAGE_KEYS.GAME_SCENARIO)
     localStorage.removeItem(STORAGE_KEYS.PLAYERS)
     localStorage.removeItem(STORAGE_KEYS.GAME_NOTES)
   } catch (e) {

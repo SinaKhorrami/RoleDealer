@@ -1,71 +1,211 @@
 <template>
-  <div class="role-input-container">
-    <div class="content">
-      <h1>🎭 RoleDealer</h1>
-      <p class="subtitle">Add roles for your Mafia game</p>
+  <div class="setup-container">
+    <main class="setup-panel">
+      <section class="setup-header">
+        <p class="eyebrow">Russian Mafia Organizer</p>
+        <h1>RoleDealer</h1>
+        <p class="subtitle">Pick a scenario, set the table size, complete the role list, then enter players.</p>
+      </section>
 
       <div v-if="hasSavedGame" class="saved-game-section">
-        <button @click="$emit('resume')" class="resume-btn">
-          ▶ Resume Saved Game
-        </button>
+        <button @click="$emit('resume')" class="secondary-btn">Resume Saved Game</button>
       </div>
 
-      <div class="form-group">
-        <div class="input-wrapper">
-          <input
-            v-model="roleName"
-            type="text"
-            placeholder="Role name (e.g., Mafia, Doctor)"
-            @keyup.enter="addRole"
-            maxlength="20"
-            class="role-input"
-          />
-          <div class="input-subtext">{{ roleName.length }}/20</div>
+      <section class="section">
+        <h2>Scenario</h2>
+        <div class="scenario-grid">
+          <button
+            v-for="scenario in scenarios"
+            :key="scenario.id"
+            type="button"
+            :class="['scenario-option', { selected: selectedScenarioId === scenario.id }]"
+            @click="selectScenario(scenario.id)"
+          >
+            <span class="scenario-name">{{ scenario.name }}</span>
+            <span class="scenario-description">{{ scenario.description }}</span>
+            <span class="scenario-meta">Standard {{ scenario.standardRoles.length }} players</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Number of Players</h2>
+        <div class="number-row">
+          <button type="button" class="stepper-btn" @click="decrementPlayers">-</button>
+          <input v-model.number="playerCount" class="number-input" type="number" min="1" max="30" />
+          <button type="button" class="stepper-btn" @click="incrementPlayers">+</button>
+        </div>
+        <p class="helper-text">
+          {{ selectedScenario.name }} has {{ baseRoleCount }} base roles.
+          <span v-if="customRoleSlots > 0">Add {{ customRoleSlots }} custom role{{ customRoleSlots === 1 ? '' : 's' }} for this table.</span>
+        </p>
+      </section>
+
+      <section v-if="selectedScenario.id === 'custom'" class="section scenario-details">
+        <div class="section-title-row">
+          <h2>Scenario Calls</h2>
+          <span class="count-pill">{{ customRoleItems.length }} / {{ normalizedPlayerCount }}</span>
         </div>
 
-        <div class="count-wrapper">
-          <label>Count:</label>
-          <div class="count-controls">
-            <button @click="decrementCount" class="count-btn">−</button>
-            <span class="count-display">{{ roleCount }}</span>
-            <button @click="incrementCount" class="count-btn">+</button>
+        <div :class="['missing-role-panel', { disabled: customRoleItems.length >= normalizedPlayerCount }]">
+          <p class="helper-text">
+            Add custom roles manually. Name, side, and description are all organizer-controlled.
+          </p>
+          <form class="custom-role-form" @submit.prevent="addCustomRole">
+            <input
+              v-model="customRoleDraft.name"
+              type="text"
+              placeholder="Role name"
+              maxlength="40"
+              class="text-input"
+              :disabled="customRoleItems.length >= normalizedPlayerCount"
+            />
+            <select v-model="customRoleDraft.side" class="text-input" :disabled="customRoleItems.length >= normalizedPlayerCount">
+              <option value="Mafia">Mafia</option>
+              <option value="Town">Town</option>
+              <option value="Independent">Independent</option>
+            </select>
+            <input
+              v-model="customRoleDraft.ability"
+              type="text"
+              placeholder="Short description"
+              maxlength="120"
+              class="text-input"
+              :disabled="customRoleItems.length >= normalizedPlayerCount"
+            />
+            <button type="submit" class="add-btn" :disabled="customRoleItems.length >= normalizedPlayerCount">
+              Add Role
+            </button>
+          </form>
+          <p v-if="customRoleItems.length >= normalizedPlayerCount" class="helper-text">
+            Maximum custom roles reached.
+          </p>
+        </div>
+
+        <div class="rules-grid">
+          <div v-for="(role, index) in customRoleItems" :key="`${role.name}-${index}`" class="rule-row">
+            <div>
+              <strong>{{ role.name }}</strong>
+              <span>{{ role.side }}</span>
+            </div>
+            <p v-if="role.ability">{{ role.ability }}</p>
+            <button type="button" class="remove-btn remove-inline" @click="removeCustomRole(index)">Remove</button>
+          </div>
+        </div>
+      </section>
+
+      <section v-else-if="selectedScenario.roleDetails?.length" class="section scenario-details">
+        <div class="section-title-row">
+          <h2>Scenario Calls</h2>
+          <span class="count-pill">{{ baseRoleCount }} base roles</span>
+        </div>
+
+        <div class="rules-grid">
+          <div v-for="role in selectedScenario.roleDetails" :key="role.name" class="rule-row">
+            <div>
+              <strong>{{ role.name }}</strong>
+              <span>{{ role.side || role.team }}</span>
+            </div>
+            <p v-if="role.ability">{{ role.ability }}</p>
           </div>
         </div>
 
-        <button @click="addRole" class="add-btn">+ Add Role</button>
-      </div>
+        <div v-if="selectedScenario.investigationNotes?.length" class="info-panel">
+          <h3>Detective Results</h3>
+          <p v-for="note in selectedScenario.investigationNotes" :key="note">{{ note }}</p>
+        </div>
 
-      <div v-if="roles.length > 0" class="roles-list">
-        <h2>Roles Added:</h2>
-        <div class="role-tags">
-          <div v-for="(role, index) in roles" :key="index" class="role-tag">
-            <span>{{ role.name }} <span class="count-badge">×{{ role.count }}</span></span>
-            <button @click="removeRole(index)" class="remove-btn">✕</button>
+        <div v-if="selectedScenario.winConditions?.length" class="info-panel">
+          <h3>Win Conditions</h3>
+          <p v-for="condition in selectedScenario.winConditions" :key="condition">{{ condition }}</p>
+        </div>
+
+        <div v-if="customRoleSlots > 0" class="section-title-row custom-header">
+          <h2>Custom Roles</h2>
+          <span class="count-pill">{{ customRoleItems.length }} / {{ customRoleSlots }}</span>
+        </div>
+
+        <div :class="['missing-role-panel', { disabled: customRoleItems.length >= customRoleSlots }]">
+          <p class="helper-text">
+            Add custom roles for this table size. Each custom role is added on top of the scenario base roles.
+          </p>
+          <form class="custom-role-form" @submit.prevent="addCustomRole">
+            <input
+              v-model="customRoleDraft.name"
+              type="text"
+              placeholder="Role name"
+              maxlength="40"
+              class="text-input"
+              :disabled="customRoleItems.length >= customRoleSlots"
+            />
+            <select v-model="customRoleDraft.side" class="text-input" :disabled="customRoleItems.length >= customRoleSlots">
+              <option value="Mafia">Mafia</option>
+              <option value="Town">Town</option>
+              <option value="Independent">Independent</option>
+            </select>
+            <input
+              v-model="customRoleDraft.ability"
+              type="text"
+              placeholder="Short description"
+              maxlength="120"
+              class="text-input"
+              :disabled="customRoleItems.length >= customRoleSlots"
+            />
+            <button type="submit" class="add-btn" :disabled="customRoleItems.length >= customRoleSlots">
+              Add Role
+            </button>
+          </form>
+          <p v-if="customRoleItems.length >= customRoleSlots" class="helper-text">
+            Maximum custom roles reached.
+          </p>
+        </div>
+
+        <div v-if="customRoleItems.length" class="rules-grid">
+          <div v-for="(role, index) in customRoleItems" :key="`${role.name}-${index}`" class="rule-row">
+            <div>
+              <strong>{{ role.name }}</strong>
+              <span>{{ role.side }}</span>
+            </div>
+            <p v-if="role.ability">{{ role.ability }}</p>
+            <button type="button" class="remove-btn remove-inline" @click="removeCustomRole(index)">Remove</button>
           </div>
         </div>
+      </section>
+
+      <section class="section">
+        <div class="section-title-row">
+          <h2>Players</h2>
+          <span class="count-pill">{{ completedPlayerCount }} / {{ normalizedPlayerCount }}</span>
+        </div>
+
+        <div class="player-inputs">
+          <label v-for="(_, index) in playerNames" :key="index" class="player-input-row">
+            <span>Player {{ index + 1 }}</span>
+            <input
+              v-model="playerNames[index]"
+              type="text"
+              :placeholder="`Player ${index + 1} name`"
+              maxlength="30"
+              required
+              class="text-input"
+              @input="errors = []"
+            />
+          </label>
+        </div>
+      </section>
+
+      <div v-if="errors.length" class="error-messages">
+        <p v-for="error in errors" :key="error" class="error">{{ error }}</p>
       </div>
 
-      <div v-if="roles.length > 0" class="game-info">
-        <p>Total roles: <strong>{{ totalRoles }}</strong></p>
-      </div>
-
-      <button
-        v-if="roles.length > 0"
-        @click="startGame"
-        class="start-btn"
-      >
-        START GAME
-      </button>
-
-      <div v-if="errors.length > 0" class="error-messages">
-        <p v-for="(error, index) in errors" :key="index" class="error">{{ error }}</p>
-      </div>
-    </div>
+      <button type="button" class="start-btn" @click="startGame">Start Role Reveal</button>
+    </main>
   </div>
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { SCENARIOS, getScenarioById, shuffle, summarizeRoles } from '../scenarios.js'
 
 export default {
   name: 'RoleInput',
@@ -77,100 +217,222 @@ export default {
   },
   emits: ['start', 'resume'],
   setup(props, { emit }) {
-    const roleName = ref('')
-    const roleCount = ref(1)
-    const roles = ref([])
+    const scenarios = SCENARIOS
+    const selectedScenarioId = ref(SCENARIOS[0].id)
+    const initialPlayerCount = SCENARIOS[0].id === 'custom' ? 1 : SCENARIOS[0].standardRoles.length
+    const playerCount = ref(initialPlayerCount)
+    const customRoleItems = ref([])
+    const customRoleDraft = ref({
+      name: '',
+      side: 'Town',
+      ability: ''
+    })
+    const playerNames = ref(Array.from({ length: initialPlayerCount }, () => ''))
     const errors = ref([])
 
-    const totalRoles = computed(() => {
-      return roles.value.reduce((sum, role) => sum + role.count, 0)
+    const selectedScenario = computed(() => getScenarioById(selectedScenarioId.value))
+    const isCustomScenario = computed(() => selectedScenario.value.id === 'custom')
+    const normalizedPlayerCount = computed(() => Math.max(1, Number(playerCount.value) || 1))
+    const baseRoleNames = computed(() => {
+      if (isCustomScenario.value) return []
+      return selectedScenario.value.standardRoles || []
+    })
+    const baseRoleCount = computed(() => {
+      return isCustomScenario.value ? 0 : baseRoleNames.value.length
+    })
+    const customRoleSlots = computed(() => {
+      return Math.max(0, normalizedPlayerCount.value - baseRoleCount.value)
+    })
+    const completedRoles = computed(() => {
+      if (isCustomScenario.value) {
+        return customRoleItems.value.map((role) => role.name).slice(0, normalizedPlayerCount.value)
+      }
+
+      return [...baseRoleNames.value, ...customRoleItems.value.map((role) => role.name)].slice(0, normalizedPlayerCount.value)
+    })
+    const rolePreview = computed(() => summarizeRoles(completedRoles.value))
+    const trimmedPlayerNames = computed(() => playerNames.value.map((name) => name.trim()))
+    const completedPlayerCount = computed(() => {
+      return trimmedPlayerNames.value.filter(Boolean).length
     })
 
-    const addRole = () => {
+    const syncPlayerInputs = () => {
+      const count = normalizedPlayerCount.value
+
+      if (playerNames.value.length > count) {
+        playerNames.value = playerNames.value.slice(0, count)
+        return
+      }
+
+      while (playerNames.value.length < count) {
+        playerNames.value.push('')
+      }
+    }
+
+    watch(playerCount, () => {
+      syncPlayerInputs()
       errors.value = []
-      
-      if (!roleName.value.trim()) {
-        errors.value.push('Please enter a role name')
+    })
+
+    const selectScenario = (scenarioId) => {
+      selectedScenarioId.value = scenarioId
+      const nextScenario = getScenarioById(scenarioId)
+      customRoleItems.value = []
+      customRoleDraft.value = {
+        name: '',
+        side: 'Town',
+        ability: ''
+      }
+      playerCount.value = nextScenario.id === 'custom' ? 1 : nextScenario.standardRoles.length
+    }
+
+    const incrementPlayers = () => {
+      if (normalizedPlayerCount.value < 30) playerCount.value = normalizedPlayerCount.value + 1
+    }
+
+    const decrementPlayers = () => {
+      if (normalizedPlayerCount.value > selectedScenario.value.minPlayers) {
+        playerCount.value = normalizedPlayerCount.value - 1
+      }
+    }
+
+    const addCustomRole = () => {
+      const name = customRoleDraft.value.name.trim()
+      const side = customRoleDraft.value.side
+      const ability = customRoleDraft.value.ability.trim()
+      errors.value = []
+
+      if (!name) {
+        errors.value = ['Enter the custom role name.']
         return
       }
 
-      if (roleName.value.length > 20) {
-        errors.value.push('Role name must be 20 characters or less')
+      if (customRoleItems.value.some((role) => role.name.toLowerCase() === name.toLowerCase())) {
+        errors.value = ['Each custom role name must be unique.']
         return
       }
 
-      if (roleCount.value < 1) {
-        errors.value.push('Count must be at least 1')
+      const roleLimit = isCustomScenario.value ? normalizedPlayerCount.value : customRoleSlots.value
+
+      if (customRoleItems.value.length >= roleLimit) {
+        errors.value = ['The custom role list is already complete for this player count.']
         return
       }
 
-      if (roles.value.some(r => r.name.toLowerCase() === roleName.value.toLowerCase())) {
-        errors.value.push('This role already exists')
-        return
-      }
-
-      roles.value.push({
-        name: roleName.value.trim(),
-        count: roleCount.value
+      customRoleItems.value.push({
+        name,
+        side,
+        ability
       })
 
-      roleName.value = ''
-      roleCount.value = 1
+      customRoleDraft.value = {
+        name: '',
+        side,
+        ability: ''
+      }
     }
 
-    const removeRole = (index) => {
-      roles.value.splice(index, 1)
+    const removeCustomRole = (index) => {
+      customRoleItems.value.splice(index, 1)
       errors.value = []
-    }
-
-    const incrementCount = () => {
-      if (roleCount.value < 10) {
-        roleCount.value++
-      }
-    }
-
-    const decrementCount = () => {
-      if (roleCount.value > 1) {
-        roleCount.value--
-      }
     }
 
     const startGame = () => {
-      if (roles.value.length === 0) {
-        errors.value = ['Please add at least one role']
+      errors.value = []
+
+      if (normalizedPlayerCount.value < selectedScenario.value.minPlayers) {
+        errors.value = [
+          `${selectedScenario.value.name} needs at least ${selectedScenario.value.minPlayers} players.`
+        ]
         return
       }
 
-      // Flatten roles into an array of individual role objects
-      const gameRoles = []
-      roles.value.forEach(role => {
-        for (let i = 0; i < role.count; i++) {
-          gameRoles.push({
-            name: role.name,
-            id: Math.random() // Unique id for each role instance
-          })
+      if (isCustomScenario.value) {
+        if (customRoleItems.value.length !== normalizedPlayerCount.value) {
+          errors.value = [`Add exactly ${normalizedPlayerCount.value} custom roles before starting.`]
+          return
         }
-      })
 
-      // Shuffle the roles
-      for (let i = gameRoles.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [gameRoles[i], gameRoles[j]] = [gameRoles[j], gameRoles[i]]
+        if (customRoleItems.value.some((role) => !role.name.trim())) {
+          errors.value = ['Every custom role needs a name.']
+          return
+        }
+
+        const duplicateCustomRoles = customRoleItems.value.filter((role, index, roles) => {
+          return roles.findIndex((existingRole) => existingRole.name.toLowerCase() === role.name.toLowerCase()) !== index
+        })
+
+        if (duplicateCustomRoles.length) {
+          errors.value = ['Each custom role name must be unique.']
+          return
+        }
       }
 
-      emit('start', gameRoles)
+      if (!isCustomScenario.value && customRoleItems.value.length !== customRoleSlots.value) {
+        errors.value = [`Add exactly ${customRoleSlots.value} custom role${customRoleSlots.value === 1 ? '' : 's'} before starting.`]
+        return
+      }
+
+      if (completedPlayerCount.value !== normalizedPlayerCount.value) {
+        errors.value = ['Fill in every player name before starting.']
+        return
+      }
+
+      const duplicateNames = trimmedPlayerNames.value.filter((name, index, names) => {
+        return names.findIndex((existingName) => existingName.toLowerCase() === name.toLowerCase()) !== index
+      })
+
+      if (duplicateNames.length) {
+        errors.value = ['Each player name must be unique.']
+        return
+      }
+
+      const roles = shuffle(completedRoles.value)
+      const mergedRoleDetails = isCustomScenario.value
+        ? customRoleItems.value.map((role) => ({ ...role }))
+        : [...(selectedScenario.value.roleDetails || []), ...customRoleItems.value.map((role) => ({ ...role }))]
+      const scenarioPayload = {
+        ...selectedScenario.value,
+        standardRoles: isCustomScenario.value
+          ? customRoleItems.value.map((role) => role.name).slice(0, normalizedPlayerCount.value)
+          : [...baseRoleNames.value],
+        roleDetails: mergedRoleDetails,
+        minPlayers: isCustomScenario.value ? normalizedPlayerCount.value : selectedScenario.value.minPlayers
+      }
+
+      const assignments = trimmedPlayerNames.value.map((name, index) => ({
+        id: `${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`,
+        name,
+        role: roles[index],
+        revealed: false
+      }))
+
+      emit('start', {
+        scenario: scenarioPayload,
+        assignments
+      })
     }
 
     return {
-      roleName,
-      roleCount,
-      roles,
+      scenarios,
+      selectedScenarioId,
+      selectedScenario,
+      playerCount,
+      normalizedPlayerCount,
+      baseRoleCount,
+      customRoleSlots,
+      customRoleItems,
+      customRoleDraft,
+      playerNames,
+      completedPlayerCount,
+      completedRoles,
+      rolePreview,
       errors,
-      totalRoles,
-      addRole,
-      removeRole,
-      incrementCount,
-      decrementCount,
+      selectScenario,
+      incrementPlayers,
+      decrementPlayers,
+      addCustomRole,
+      removeCustomRole,
       startGame
     }
   }
@@ -178,179 +440,155 @@ export default {
 </script>
 
 <style scoped>
-.role-input-container {
-  width: 100%;
-  height: 100vh;
+.setup-container {
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  box-sizing: border-box;
+  background: #171717;
+  padding: 24px;
 }
 
-.content {
-  width: 100%;
-  max-width: 500px;
-  background: white;
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+.setup-panel {
+  width: min(780px, 100%);
+  background: #f7f4ee;
+  border: 1px solid #d6d0c3;
+  border-radius: 8px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  max-height: 90vh;
-  overflow-y: auto;
+  gap: 22px;
+  color: #1d1b18;
+}
+
+.setup-header,
+.saved-game-section,
+.section,
+.missing-role-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eyebrow {
+  color: #8d1f1f;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
 }
 
 h1 {
-  margin: 0;
-  font-size: 2.5em;
-  text-align: center;
-  color: #333;
+  font-size: 2.1rem;
 }
 
-.subtitle {
-  margin: 0;
-  text-align: center;
-  color: #666;
-  font-size: 0.95em;
+h2 {
+  font-size: 1rem;
 }
 
-.saved-game-section {
-  padding: 15px;
-  background: #e8f5e9;
-  border: 2px solid #4caf50;
-  border-radius: 10px;
+h3 {
+  font-size: 0.88rem;
 }
 
-.resume-btn {
-  width: 100%;
-  padding: 12px 20px;
-  background: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 1em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
+.subtitle,
+.scenario-description,
+.scenario-meta,
+.helper-text {
+  color: #5d5850;
 }
 
-.resume-btn:active {
-  background: #45a049;
-  transform: scale(0.98);
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.form-group {
+.scenario-option {
+  min-height: 132px;
+  border: 1px solid #c9c0b1;
+  border-radius: 8px;
+  background: #fffaf1;
+  padding: 14px;
+  text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 8px;
+  cursor: pointer;
 }
 
-.input-wrapper {
-  position: relative;
+.scenario-option.selected {
+  border-color: #8d1f1f;
+  box-shadow: inset 0 0 0 2px #8d1f1f;
 }
 
-.role-input {
-  width: 100%;
-  padding: 12px 15px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  font-size: 1em;
-  transition: border-color 0.3s;
-  box-sizing: border-box;
+.scenario-name {
+  font-size: 1.05rem;
+  font-weight: 800;
 }
 
-.role-input:focus {
-  outline: none;
-  border-color: #667eea;
+.scenario-description,
+.scenario-meta,
+.helper-text {
+  font-size: 0.9rem;
+  line-height: 1.35;
 }
 
-.input-subtext {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.75em;
-  color: #999;
-  pointer-events: none;
+.scenario-meta {
+  margin-top: auto;
+  font-weight: 700;
 }
 
-.count-wrapper {
+.number-row,
+.section-title-row,
+.player-row {
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 10px;
-  background: #f5f5f5;
-  border-radius: 10px;
+  gap: 12px;
 }
 
-.count-wrapper label {
-  font-weight: 600;
-  color: #333;
-  min-width: 50px;
+.section-title-row,
+.player-row {
+  justify-content: space-between;
 }
 
-.count-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-}
-
-.count-btn {
-  width: 40px;
-  height: 40px;
-  border: 2px solid #667eea;
-  background: white;
-  color: #667eea;
+.number-input {
+  width: 110px;
+  border: 1px solid #c9c0b1;
   border-radius: 8px;
-  font-size: 1.2em;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-weight: bold;
-}
-
-.count-btn:active {
-  background: #667eea;
-  color: white;
-  transform: scale(0.95);
-}
-
-.count-display {
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #333;
-  min-width: 30px;
+  padding: 11px 12px;
+  background: white;
+  color: #1d1b18;
   text-align: center;
+  font-weight: 800;
 }
 
-.add-btn {
-  padding: 12px 20px;
-  background: #667eea;
+.stepper-btn {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 8px;
+  background: #2f2f2f;
   color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 1em;
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 900;
   cursor: pointer;
-  transition: all 0.3s;
 }
 
-.add-btn:active {
-  background: #5568d3;
-  transform: scale(0.98);
-}
-
-.roles-list {
-  margin-top: 10px;
-}
-
-.roles-list h2 {
-  margin: 0 0 12px 0;
-  font-size: 1em;
-  color: #333;
+.count-pill,
+.role-tag {
+  background: #e7dfd0;
+  border-radius: 999px;
+  color: #3a352d;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 6px 10px;
 }
 
 .role-tags {
@@ -359,92 +597,207 @@ h1 {
   gap: 8px;
 }
 
-.role-tag {
-  display: flex;
-  align-items: center;
+.scenario-details {
+  border-top: 1px solid #ded6c9;
+  border-bottom: 1px solid #ded6c9;
+  padding: 16px 0;
+}
+
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  background: #f0f0f0;
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 0.9em;
-  color: #333;
-  border: 1px solid #ddd;
 }
 
-.count-badge {
-  background: #667eea;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 12px;
-  font-size: 0.85em;
-  font-weight: bold;
+.custom-role-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(120px, 0.7fr) minmax(0, 1.5fr) auto;
+  gap: 8px;
 }
 
-.remove-btn {
-  background: none;
-  border: none;
-  color: #999;
-  cursor: pointer;
-  font-size: 1.2em;
-  padding: 0;
-  width: 24px;
-  height: 24px;
+.missing-role-panel.disabled {
+  opacity: 0.6;
+}
+
+.rule-row,
+.info-panel {
+  border: 1px solid #ded6c9;
+  border-radius: 8px;
+  background: white;
+  padding: 11px 12px;
+}
+
+.rule-row {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.rule-row div {
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.remove-btn:hover {
-  color: #e74c3c;
-  transform: scale(1.2);
+.rule-row strong {
+  overflow-wrap: anywhere;
 }
 
-.game-info {
-  padding: 12px;
-  background: #f0f7ff;
-  border-left: 4px solid #667eea;
+.rule-row span {
+  border-radius: 999px;
+  background: #e7dfd0;
+  color: #3a352d;
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 4px 8px;
+}
+
+.rule-row p,
+.info-panel p {
+  color: #5d5850;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.remove-inline {
+  justify-self: start;
+  padding: 7px 10px;
+}
+
+.info-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.player-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.text-input {
+  width: 100%;
+  border: 1px solid #c9c0b1;
   border-radius: 8px;
-  margin-top: 10px;
+  padding: 12px 14px;
+  background: white;
+  color: #1d1b18;
 }
 
-.game-info p {
-  margin: 0;
-  color: #333;
-  font-size: 0.95em;
+.text-input:disabled {
+  background: #ece8de;
+  color: #8c8578;
+  cursor: not-allowed;
 }
 
-.start-btn {
-  padding: 14px 30px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 1.1em;
-  font-weight: 700;
+.add-btn,
+.start-btn,
+.secondary-btn,
+.remove-btn {
+  border: 0;
+  border-radius: 8px;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.3s;
-  margin-top: 10px;
-  letter-spacing: 0.5px;
 }
 
-.start-btn:active {
-  transform: scale(0.98);
+.add-btn,
+.start-btn {
+  background: #8d1f1f;
+  color: white;
 }
 
-.error-messages {
+.add-btn {
+  padding: 0 18px;
+}
+
+.add-btn:disabled {
+  background: #b9b1a4;
+  color: #f7f4ee;
+  cursor: not-allowed;
+}
+
+.start-btn,
+.secondary-btn {
+  padding: 14px 18px;
+}
+
+.secondary-btn {
+  background: #2f2f2f;
+  color: white;
+}
+
+.players-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.error {
-  padding: 10px 12px;
-  background: #ffebee;
-  color: #c62828;
+.player-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.player-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.player-input-row span {
+  color: #5d5850;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.player-row {
+  background: white;
+  border: 1px solid #ded6c9;
   border-radius: 8px;
-  margin: 0;
-  font-size: 0.9em;
-  border-left: 4px solid #c62828;
+  padding: 10px 12px;
+}
+
+.remove-btn {
+  background: #ece5d9;
+  color: #5a201d;
+  padding: 7px 10px;
+}
+
+.error-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.error {
+  color: #8d1f1f;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .setup-container {
+    padding: 12px;
+    align-items: stretch;
+  }
+
+  .setup-panel {
+    min-height: calc(100vh - 24px);
+    padding: 20px;
+  }
+
+  .scenario-grid,
+  .rules-grid,
+  .custom-role-form,
+  .player-inputs,
+  .player-form {
+    grid-template-columns: 1fr;
+  }
+
+  .add-btn {
+    min-height: 44px;
+  }
 }
 </style>
