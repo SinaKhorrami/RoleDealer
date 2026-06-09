@@ -65,13 +65,13 @@ export default {
 .drawer-panel {
   position: absolute;
   top: 0;
-  right: 0;
+  left: 0;
   width: min(320px, 86vw);
   height: 100%;
   background: #171717;
   color: #f8f1e7;
-  border-left: 1px solid #333;
-  box-shadow: -18px 0 44px rgba(0, 0, 0, 0.42);
+  border-right: 1px solid #333;
+  box-shadow: 18px 0 44px rgba(0, 0, 0, 0.42);
   display: flex;
   flex-direction: column;
   padding: 18px;
@@ -164,7 +164,7 @@ export default {
 
 .drawer-fade-enter-from .drawer-panel,
 .drawer-fade-leave-to .drawer-panel {
-  transform: translateX(100%);
+  transform: translateX(-100%);
 }
 
 @media (max-width: 620px) {
