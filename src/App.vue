@@ -99,14 +99,19 @@ export default {
     }
 
     const playAgain = () => {
-      // Reset revealed state on all assignments but keep the same role assignments and players
-      gameRoles.value = gameRoles.value.map((assignment) => ({
-        ...assignment,
+      const names = shuffleArray(gameRoles.value.map((assignment) => assignment.name))
+      const roles = shuffleArray(gameRoles.value.map((assignment) => assignment.role))
+
+      gameRoles.value = names.map((name, index) => ({
+        id: `${Date.now()}-${index}-${Math.random().toString(16).slice(2)}`,
+        name,
+        role: roles[index],
         revealed: false
       }))
 
       gameState.value = 'playing'
-      // Keep players.value the same - they already know their roles!
+      players.value = []
+      clearAllGameData() // Clear notes but keep roles
       saveGameScenario(scenario.value)
       saveGameRoles(gameRoles.value)
       saveGameState('playing')

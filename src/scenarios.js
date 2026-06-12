@@ -25,7 +25,7 @@ export const SCENARIOS = [
       'Armored / رویین‌تن',
       'Interrogator / بازپرس',
       'Simple Citizen / شهروند ساده',
-      'Sniper / تک‌تیرانداز'
+      'Simple Citizen / شهروند ساده'
     ],
     recommendedRolesByCount: {
       10: [
@@ -38,7 +38,7 @@ export const SCENARIOS = [
         'Armored / رویین‌تن',
         'Interrogator / بازپرس',
         'Simple Citizen / شهروند ساده',
-        'Sniper / تک‌تیرانداز'
+        'Simple Citizen / شهروند ساده'
       ],
       11: [
         'Mafia Boss / رئیس مافیا',
@@ -51,19 +51,19 @@ export const SCENARIOS = [
         'Interrogator / بازپرس',
         'Simple Citizen / شهروند ساده',
         'Simple Citizen / شهروند ساده',
-        'Sniper / تک‌تیرانداز'
+        'Simple Citizen / شهروند ساده'
       ],
       12: [
         'Mafia Boss / رئیس مافیا',
         'Nato / ناتو',
         'Shiad / شیاد',
-        'Simple Mafia / مافیا ساده',
         'Detective / کارآگاه',
         'Doctor / پزشک',
         'Investigator / محقق',
         'Armored / رویین‌تن',
         'Interrogator / بازپرس',
         'Sniper / تک‌تیرانداز',
+        'Simple Mafia / مافیا ساده',
         'Simple Citizen / شهروند ساده',
         'Simple Citizen / شهروند ساده'
       ],
@@ -71,13 +71,13 @@ export const SCENARIOS = [
         'Mafia Boss / رئیس مافیا',
         'Nato / ناتو',
         'Shiad / شیاد',
-        'Simple Mafia / مافیا ساده',
         'Detective / کارآگاه',
         'Doctor / پزشک',
         'Investigator / محقق',
         'Armored / رویین‌تن',
         'Interrogator / بازپرس',
         'Sniper / تک‌تیرانداز',
+        'Simple Mafia / مافیا ساده',
         'Simple Citizen / شهروند ساده',
         'Simple Citizen / شهروند ساده',
         'Simple Citizen / شهروند ساده'
