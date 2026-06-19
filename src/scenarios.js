@@ -16,104 +16,93 @@ export const SCENARIOS = [
     description: 'Gorgine بازپرس setup for 10 to 15 players.',
     minPlayers: 10,
     standardRoles: [
-      'Mafia Boss / رئیس مافیا',
-      'Nato / ناتو',
-      'Shiad / شیاد',
-      'Detective / کارآگاه',
-      'Doctor / پزشک',
-      'Investigator / محقق',
-      'Armored / رویین‌تن',
-      'Interrogator / بازپرس',
-      'Simple Citizen / شهروند ساده',
-      'Sniper / تک‌تیرانداز'
+      { name: 'Mafia Boss / رئیس مافیا', count: 1 },
+      { name: 'Nato / ناتو', count: 1 },
+      { name: 'Shiad / شیاد', count: 1 },
+      { name: 'Detective / کارآگاه', count: 1 },
+      { name: 'Doctor / پزشک', count: 1 },
+      { name: 'Investigator / محقق', count: 1 },
+      { name: 'Armored / رویین‌تن', count: 1 },
+      { name: 'Interrogator / بازپرس', count: 1 },
+      { name: 'Simple Citizen / شهروند ساده', count: 1 },
+      { name: 'Sniper / تک‌تیرانداز', count: 1 }
     ],
     recommendedRolesByCount: {
       10: [
-        'Mafia Boss / رئیس مافیا',
-        'Nato / ناتو',
-        'Shiad / شیاد',
-        'Detective / کارآگاه',
-        'Doctor / پزشک',
-        'Investigator / محقق',
-        'Armored / رویین‌تن',
-        'Interrogator / بازپرس',
-        'Simple Citizen / شهروند ساده',
-        'Sniper / تک‌تیرانداز'
+        { name: 'Mafia Boss / رئیس مافیا', count: 1 },
+        { name: 'Nato / ناتو', count: 1 },
+        { name: 'Shiad / شیاد', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Doctor / پزشک', count: 1 },
+        { name: 'Investigator / محقق', count: 1 },
+        { name: 'Armored / رویین‌تن', count: 1 },
+        { name: 'Interrogator / بازپرس', count: 1 },
+        { name: 'Simple Citizen / شهروند ساده', count: 1 },
+        { name: 'Sniper / تک‌تیرانداز', count: 1 }
       ],
       11: [
-        'Mafia Boss / رئیس مافیا',
-        'Nato / ناتو',
-        'Shiad / شیاد',
-        'Detective / کارآگاه',
-        'Doctor / پزشک',
-        'Investigator / محقق',
-        'Armored / رویین‌تن',
-        'Interrogator / بازپرس',
-        'Simple Citizen / شهروند ساده',
-        'Simple Citizen / شهروند ساده',
-        'Sniper / تک‌تیرانداز'
+        { name: 'Mafia Boss / رئیس مافیا', count: 1 },
+        { name: 'Nato / ناتو', count: 1 },
+        { name: 'Shiad / شیاد', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Doctor / پزشک', count: 1 },
+        { name: 'Investigator / محقق', count: 1 },
+        { name: 'Armored / رویین‌تن', count: 1 },
+        { name: 'Interrogator / بازپرس', count: 1 },
+        { name: 'Simple Citizen / شهروند ساده', count: 2 },
+        { name: 'Sniper / تک‌تیرانداز', count: 1 }
       ],
       12: [
-        'Mafia Boss / رئیس مافیا',
-        'Nato / ناتو',
-        'Shiad / شیاد',
-        'Simple Mafia / مافیا ساده',
-        'Detective / کارآگاه',
-        'Doctor / پزشک',
-        'Investigator / محقق',
-        'Armored / رویین‌تن',
-        'Interrogator / بازپرس',
-        'Sniper / تک‌تیرانداز',
-        'Simple Citizen / شهروند ساده',
-        'Simple Citizen / شهروند ساده'
+        { name: 'Mafia Boss / رئیس مافیا', count: 1 },
+        { name: 'Nato / ناتو', count: 1 },
+        { name: 'Shiad / شیاد', count: 1 },
+        { name: 'Simple Mafia / مافیا ساده', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Doctor / پزشک', count: 1 },
+        { name: 'Investigator / محقق', count: 1 },
+        { name: 'Armored / رویین‌تن', count: 1 },
+        { name: 'Interrogator / بازپرس', count: 1 },
+        { name: 'Sniper / تک‌تیرانداز', count: 1 },
+        { name: 'Simple Citizen / شهروند ساده', count: 2 }
       ],
       13: [
-        'Mafia Boss / رئیس مافیا',
-        'Nato / ناتو',
-        'Shiad / شیاد',
-        'Simple Mafia / مافیا ساده',
-        'Detective / کارآگاه',
-        'Doctor / پزشک',
-        'Investigator / محقق',
-        'Armored / رویین‌تن',
-        'Interrogator / بازپرس',
-        'Sniper / تک‌تیرانداز',
-        'Simple Citizen / شهروند ساده',
-        'Simple Citizen / شهروند ساده',
-        'Simple Citizen / شهروند ساده'
+        { name: 'Mafia Boss / رئیس مافیا', count: 1 },
+        { name: 'Nato / ناتو', count: 1 },
+        { name: 'Shiad / شیاد', count: 1 },
+        { name: 'Simple Mafia / مافیا ساده', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Doctor / پزشک', count: 1 },
+        { name: 'Investigator / محقق', count: 1 },
+        { name: 'Armored / رویین‌تن', count: 1 },
+        { name: 'Interrogator / بازپرس', count: 1 },
+        { name: 'Sniper / تک‌تیرانداز', count: 1 },
+        { name: 'Simple Citizen / شهروند ساده', count: 3 }
       ],
       14: [
-        'Mafia Boss / رئیس مافیا',
-        'Nato / ناتو',
-        'Shiad / شیاد',
-        'Detective / کارآگاه',
-        'Doctor / پزشک',
-        'Investigator / محقق',
-        'Armored / رویین‌تن',
-        'Interrogator / بازپرس',
-        'Sniper / تک‌تیرانداز',
-        'Simple Mafia / مافیا ساده',
-        'Simple Citizen / شهروند ساده',
-        'Simple Citizen / شهروند ساده',
-        'Simple Citizen / شهروند ساده',
-        'Simple Citizen / شهروند ساده'
+        { name: 'Mafia Boss / رئیس مافیا', count: 1 },
+        { name: 'Nato / ناتو', count: 1 },
+        { name: 'Shiad / شیاد', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Doctor / پزشک', count: 1 },
+        { name: 'Investigator / محقق', count: 1 },
+        { name: 'Armored / رویین‌تن', count: 1 },
+        { name: 'Interrogator / بازپرس', count: 1 },
+        { name: 'Sniper / تک‌تیرانداز', count: 1 },
+        { name: 'Simple Mafia / مافیا ساده', count: 1 },
+        { name: 'Simple Citizen / شهروند ساده', count: 4 }
       ],
       15: [
-        'Mafia Boss / رئیس مافیا',
-        'Nato / ناتو',
-        'Shiad / شیاد',
-        'Detective / کارآگاه',
-        'Doctor / پزشک',
-        'Investigator / محقق',
-        'Armored / رویین‌تن',
-        'Interrogator / بازپرس',
-        'Sniper / تک‌تیرانداز',
-        'Simple Mafia / مافیا ساده',
-        'Simple Mafia / مافیا ساده',
-        'Simple Citizen / شهروند ساده',
-        'Simple Citizen / شهروند ساده',
-        'Simple Citizen / شهروند ساده',
-        'Simple Citizen / شهروند ساده'
+        { name: 'Mafia Boss / رئیس مافیا', count: 1 },
+        { name: 'Nato / ناتو', count: 1 },
+        { name: 'Shiad / شیاد', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Doctor / پزشک', count: 1 },
+        { name: 'Investigator / محقق', count: 1 },
+        { name: 'Armored / رویین‌تن', count: 1 },
+        { name: 'Interrogator / بازپرس', count: 1 },
+        { name: 'Sniper / تک‌تیرانداز', count: 1 },
+        { name: 'Simple Mafia / مافیا ساده', count: 2 },
+        { name: 'Simple Citizen / شهروند ساده', count: 4 }
       ]
     },
     roleDetails: [
@@ -177,98 +166,254 @@ export const SCENARIOS = [
     investigationNotes: []
   },
   {
+    id: 'saghi',
+    name: 'Saghi / ساقی',
+    description: 'Custom setup with Saghi core roles for 10 players.',
+    minPlayers: 10,
+    standardRoles: [
+      { name: 'Saghi / ساقی', count: 1 },
+      { name: 'Sacrificer / فدایی', count: 1 },
+      { name: 'Doctor / دکتر', count: 1 },
+      { name: 'Detective / کارآگاه', count: 1 },
+      { name: 'Sniper / اسنایپر', count: 1 },
+      { name: 'Armored / زره پوش', count: 1 },
+      { name: 'Terrorist / تروریست', count: 1 },
+      { name: 'Negotiator / مذاکره کننده', count: 1 },
+      { name: 'Godfather / گادفادر', count: 1 },
+      { name: 'Simple Citizen / شهروند ساده', count: 1 }
+    ],
+    recommendedRolesByCount: {
+      10: [
+        { name: 'Saghi / ساقی', count: 1 },
+        { name: 'Sacrificer / فدایی', count: 1 },
+        { name: 'Doctor / دکتر', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Sniper / اسنایپر', count: 1 },
+        { name: 'Armored / زره پوش', count: 1 },
+        { name: 'Terrorist / تروریست', count: 1 },
+        { name: 'Negotiator / مذاکره کننده', count: 1 },
+        { name: 'Godfather / گادفادر', count: 1 },
+        { name: 'Simple Citizen / شهروند ساده', count: 1 }
+      ],
+      11: [
+        { name: 'Saghi / ساقی', count: 1 },
+        { name: 'Sacrificer / فدایی', count: 1 },
+        { name: 'Doctor / دکتر', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Sniper / اسنایپر', count: 1 },
+        { name: 'Armored / زره پوش', count: 1 },
+        { name: 'Terrorist / تروریست', count: 1 },
+        { name: 'Negotiator / مذاکره کننده', count: 1 },
+        { name: 'Godfather / گادفادر', count: 1 },
+        { name: 'Simple Citizen / شهروند ساده', count: 2 }
+      ],
+      12: [
+        { name: 'Saghi / ساقی', count: 1 },
+        { name: 'Sacrificer / فدایی', count: 1 },
+        { name: 'Doctor / دکتر', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Judge / قاضی', count: 1 },
+        { name: 'Sniper / اسنایپر', count: 1 },
+        { name: 'Armored / زره پوش', count: 1 },
+        { name: 'Terrorist / تروریست', count: 1 },
+        { name: 'Negotiator / مذاکره کننده', count: 1 },
+        { name: 'Godfather / گادفادر', count: 1 },
+        { name: 'Silencer / ناتاشا', count: 1 },
+        { name: 'Simple Citizen / شهروند ساده', count: 1 }
+      ],
+      13: [
+        { name: 'Saghi / ساقی', count: 1 },
+        { name: 'Sacrificer / فدایی', count: 1 },
+        { name: 'Doctor / دکتر', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Judge / قاضی', count: 1 },
+        { name: 'Sniper / اسنایپر', count: 1 },
+        { name: 'Armored / زره پوش', count: 1 },
+        { name: 'Terrorist / تروریست', count: 1 },
+        { name: 'Negotiator / مذاکره کننده', count: 1 },
+        { name: 'Godfather / گادفادر', count: 1 },
+        { name: 'Silencer / ناتاشا', count: 1 },
+        { name: 'Simple Citizen / شهروند ساده', count: 2 }
+      ],
+      14: [
+        { name: 'Saghi / ساقی', count: 1 },
+        { name: 'Sacrificer / فدایی', count: 1 },
+        { name: 'Doctor / دکتر', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Judge / قاضی', count: 1 },
+        { name: 'Sniper / اسنایپر', count: 1 },
+        { name: 'Armored / زره پوش', count: 1 },
+        { name: 'Terrorist / تروریست', count: 1 },
+        { name: 'Negotiator / مذاکره کننده', count: 1 },
+        { name: 'Godfather / گادفادر', count: 1 },
+        { name: 'Silencer / ناتاشا', count: 1 },
+        { name: 'Simple Citizen / شهروند ساده', count: 3 }
+      ],
+      15: [
+        { name: 'Saghi / ساقی', count: 1 },
+        { name: 'Sacrificer / فدایی', count: 1 },
+        { name: 'Doctor / دکتر', count: 1 },
+        { name: 'Detective / کارآگاه', count: 1 },
+        { name: 'Judge / قاضی', count: 1 },
+        { name: 'Sniper / اسنایپر', count: 1 },
+        { name: 'Armored / زره پوش', count: 1 },
+        { name: 'Terrorist / تروریست', count: 1 },
+        { name: 'Negotiator / مذاکره کننده', count: 1 },
+        { name: 'Godfather / گادفادر', count: 1 },
+        { name: 'Silencer / ناتاشا', count: 1 },
+        { name: 'Basic Mafia / مافیا ساده', count: 1 },
+        { name: 'Simple Citizen / شهروند ساده', count: 3 }
+      ]
+    },
+    roleDetails: [
+      {
+        name: 'Saghi / ساقی',
+        side: 'Citizen',
+        ability: 'Affects one target role ability and makes that player drunk.'
+      },
+      {
+        name: 'Sacrificer / فدایی',
+        side: 'Citizen',
+        ability: 'Can eliminate another player together with themself.'
+      },
+      {
+        name: 'Doctor / دکتر',
+        side: 'Citizen',
+        ability: 'Can protect one player each night.'
+      },
+      {
+        name: 'Detective / کارآگاه',
+        side: 'Citizen',
+        ability: 'Checks one player each night.'
+      },
+      {
+        name: 'Sniper / اسنایپر',
+        side: 'Citizen',
+        ability: 'Has one shot during the game.'
+      },
+      {
+        name: 'Armored / زره پوش',
+        side: 'Citizen',
+        ability: 'Has defensive protection against a night attack.'
+      },
+      {
+        name: 'Terrorist / تروریست',
+        side: 'Mafia',
+        ability: 'If eliminated by vote, can take one other player down with themself.'
+      },
+      {
+        name: 'Negotiator / مذاکره کننده',
+        side: 'Mafia',
+        ability: 'When a mafia teammate is eliminated (not shot), can recruit from Armored or Simple Citizen.'
+      },
+      {
+        name: 'Godfather / گادفادر',
+        side: 'Mafia',
+        ability: 'Mafia leader role.'
+      },
+      {
+        name: 'Silencer / ناتاشا',
+        side: 'Mafia',
+        ability: 'Mafia role that can silence a player for the next day phase.'
+      },
+      {
+        name: 'Basic Mafia / مافیا ساده',
+        side: 'Mafia',
+        ability: 'Basic mafia member with no extra ability.'
+      },
+      {
+        name: 'Judge / قاضی',
+        side: 'Citizen',
+        ability: 'Can decline an elimination voting.'
+      },
+      {
+        name: 'Simple Citizen / شهروند ساده',
+        side: 'Citizen',
+        ability: 'No night ability.'
+      }
+    ],
+    winConditions: [],
+    investigationNotes: []
+  },
+  {
     id: 'godfather',
     name: 'Godfather',
     description: 'Official Gorgine Godfather: Nostradamus setup for 11 to 15 players.',
     minPlayers: 11,
     standardRoles: [
-      'Godfather',
-      'Matador',
-      'Saul Goodman',
-      'Nostradamus',
-      'Doctor Watson',
-      'Leon the Professional',
-      'Citizen Kane',
-      'Constantine',
-      'Simple Citizen',
-      'Simple Citizen',
-      'Simple Citizen'
+      { name: 'Godfather', count: 1 },
+      { name: 'Matador', count: 1 },
+      { name: 'Saul Goodman', count: 1 },
+      { name: 'Nostradamus', count: 1 },
+      { name: 'Doctor Watson', count: 1 },
+      { name: 'Leon the Professional', count: 1 },
+      { name: 'Citizen Kane', count: 1 },
+      { name: 'Constantine', count: 1 },
+      { name: 'Simple Citizen', count: 3 }
     ],
     recommendedRolesByCount: {
       11: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Nostradamus',
-        'Doctor Watson',
-        'Leon the Professional',
-        'Citizen Kane',
-        'Constantine',
-        'Simple Citizen',
-        'Simple Citizen',
-        'Simple Citizen'
+        { name: 'Godfather', count: 1 },
+        { name: 'Matador', count: 1 },
+        { name: 'Saul Goodman', count: 1 },
+        { name: 'Nostradamus', count: 1 },
+        { name: 'Doctor Watson', count: 1 },
+        { name: 'Leon the Professional', count: 1 },
+        { name: 'Citizen Kane', count: 1 },
+        { name: 'Constantine', count: 1 },
+        { name: 'Simple Citizen', count: 3 }
       ],
       12: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Nostradamus',
-        'Doctor Watson',
-        'Leon the Professional',
-        'Citizen Kane',
-        'Constantine',
-        'Sniper / تک‌تیرانداز',
-        'Simple Mafia / مافیا ساده',
-        'Simple Citizen',
-        'Simple Citizen'
+        { name: 'Godfather', count: 1 },
+        { name: 'Matador', count: 1 },
+        { name: 'Saul Goodman', count: 1 },
+        { name: 'Nostradamus', count: 1 },
+        { name: 'Doctor Watson', count: 1 },
+        { name: 'Leon the Professional', count: 1 },
+        { name: 'Citizen Kane', count: 1 },
+        { name: 'Constantine', count: 1 },
+        { name: 'Sniper / تک‌تیرانداز', count: 1 },
+        { name: 'Simple Mafia / مافیا ساده', count: 1 },
+        { name: 'Simple Citizen', count: 2 }
       ],
       13: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Nostradamus',
-        'Doctor Watson',
-        'Leon the Professional',
-        'Citizen Kane',
-        'Constantine',
-        'Sniper / تک‌تیرانداز',
-        'Simple Mafia / مافیا ساده',
-        'Simple Citizen',
-        'Simple Citizen',
-        'Simple Citizen'
+        { name: 'Godfather', count: 1 },
+        { name: 'Matador', count: 1 },
+        { name: 'Saul Goodman', count: 1 },
+        { name: 'Nostradamus', count: 1 },
+        { name: 'Doctor Watson', count: 1 },
+        { name: 'Leon the Professional', count: 1 },
+        { name: 'Citizen Kane', count: 1 },
+        { name: 'Constantine', count: 1 },
+        { name: 'Sniper / تک‌تیرانداز', count: 1 },
+        { name: 'Simple Mafia / مافیا ساده', count: 1 },
+        { name: 'Simple Citizen', count: 3 }
       ],
       14: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Nostradamus',
-        'Doctor Watson',
-        'Leon the Professional',
-        'Citizen Kane',
-        'Constantine',
-        'Sniper / تک‌تیرانداز',
-        'Simple Mafia / مافیا ساده',
-        'Simple Citizen',
-        'Simple Citizen',
-        'Simple Citizen',
-        'Simple Citizen'
+        { name: 'Godfather', count: 1 },
+        { name: 'Matador', count: 1 },
+        { name: 'Saul Goodman', count: 1 },
+        { name: 'Nostradamus', count: 1 },
+        { name: 'Doctor Watson', count: 1 },
+        { name: 'Leon the Professional', count: 1 },
+        { name: 'Citizen Kane', count: 1 },
+        { name: 'Constantine', count: 1 },
+        { name: 'Sniper / تک‌تیرانداز', count: 1 },
+        { name: 'Simple Mafia / مافیا ساده', count: 1 },
+        { name: 'Simple Citizen', count: 4 }
       ],
       15: [
-        'Godfather',
-        'Matador',
-        'Saul Goodman',
-        'Nostradamus',
-        'Doctor Watson',
-        'Leon the Professional',
-        'Citizen Kane',
-        'Constantine',
-        'Sniper / تک‌تیرانداز',
-        'Simple Mafia / مافیا ساده',
-        'Simple Mafia / مافیا ساده',
-        'Simple Citizen',
-        'Simple Citizen',
-        'Simple Citizen',
-        'Simple Citizen'
+        { name: 'Godfather', count: 1 },
+        { name: 'Matador', count: 1 },
+        { name: 'Saul Goodman', count: 1 },
+        { name: 'Nostradamus', count: 1 },
+        { name: 'Doctor Watson', count: 1 },
+        { name: 'Leon the Professional', count: 1 },
+        { name: 'Citizen Kane', count: 1 },
+        { name: 'Constantine', count: 1 },
+        { name: 'Sniper / تک‌تیرانداز', count: 1 },
+        { name: 'Simple Mafia / مافیا ساده', count: 2 },
+        { name: 'Simple Citizen', count: 4 }
       ]
     },
     roleDetails: [
@@ -318,6 +463,16 @@ export const SCENARIOS = [
         name: 'Simple Citizen',
         side: 'Citizen',
         ability: 'No special ability. Relies on discussion and voting.'
+      },
+      {
+        name: 'Simple Mafia / مافیا ساده',
+        side: 'Mafia',
+        ability: 'Basic Mafia member with no extra ability.'
+      },
+      {
+        name: 'Sniper / تک‌تیرانداز',
+        side: 'Citizen',
+        ability: 'One-shot citizen eliminator role.'
       }
     ],
     winConditions: [],
@@ -329,25 +484,65 @@ export function getScenarioById(id) {
   return SCENARIOS.find((scenario) => scenario.id === id) || SCENARIOS[0]
 }
 
+function normalizeRoleEntries(roles = []) {
+  if (!Array.isArray(roles)) return []
+
+  if (roles.every((role) => typeof role === 'string')) {
+    const counts = roles.reduce((result, roleName) => {
+      if (!roleName) return result
+      result[roleName] = (result[roleName] || 0) + 1
+      return result
+    }, {})
+    return Object.entries(counts).map(([name, count]) => ({ name, count }))
+  }
+
+  return roles
+    .map((role) => ({
+      name: typeof role?.name === 'string' ? role.name.trim() : '',
+      count: Math.max(1, Number(role?.count) || 1)
+    }))
+    .filter((role) => Boolean(role.name))
+}
+
+function expandRoleEntries(entries = []) {
+  return normalizeRoleEntries(entries).flatMap((entry) =>
+    Array.from({ length: entry.count }, () => entry.name)
+  )
+}
+
+function resolveRecommendedEntries(scenario, playerCount) {
+  const recommended = scenario?.recommendedRolesByCount || {}
+
+  if (recommended[playerCount]) {
+    return normalizeRoleEntries(recommended[playerCount])
+  }
+
+  const recommendedCounts = Object.keys(recommended)
+    .map(Number)
+    .sort((a, b) => a - b)
+  const nearestCount = recommendedCounts.filter((count) => count <= playerCount).pop()
+
+  if (nearestCount) {
+    return normalizeRoleEntries(recommended[nearestCount])
+  }
+
+  return normalizeRoleEntries(scenario?.standardRoles)
+}
+
+export function getRoleEntriesForPlayerCount(scenario, playerCount) {
+  const baseCount = expandRoleEntries(scenario?.standardRoles).length || scenario?.minPlayers || 1
+  const normalizedCount = Math.max(scenario?.minPlayers || 1, Number(playerCount) || baseCount)
+
+  return resolveRecommendedEntries(scenario, normalizedCount)
+}
+
+export function getStandardPlayerCount(scenario) {
+  return expandRoleEntries(scenario?.standardRoles).length
+}
+
 export function getRolesForPlayerCount(scenario, playerCount) {
-  const count = Math.max(scenario.minPlayers || 1, Number(playerCount) || scenario.standardRoles.length)
-
-  if (scenario.recommendedRolesByCount?.[count]) {
-    return [...scenario.recommendedRolesByCount[count]]
-  }
-
-  if (scenario.recommendedRolesByCount) {
-    const recommendedCounts = Object.keys(scenario.recommendedRolesByCount)
-      .map(Number)
-      .sort((a, b) => a - b)
-    const nearestCount = recommendedCounts.filter((recommendedCount) => recommendedCount <= count).pop()
-
-    if (nearestCount) {
-      return [...scenario.recommendedRolesByCount[nearestCount]]
-    }
-  }
-
-  return scenario.standardRoles.slice(0, count)
+  const entries = getRoleEntriesForPlayerCount(scenario, playerCount)
+  return expandRoleEntries(entries)
 }
 
 export function getRoleSide(scenario, roleName) {
