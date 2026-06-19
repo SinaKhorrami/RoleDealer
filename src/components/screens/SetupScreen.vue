@@ -23,7 +23,7 @@
           >
             <span class="scenario-name">{{ scenario.name }}</span>
             <span class="scenario-description">{{ scenario.description }}</span>
-            <span class="scenario-meta">Standard {{ scenario.standardRoles.length }} players</span>
+            <span class="scenario-meta">Standard {{ getStandardCount(scenario) }} players</span>
           </button>
         </div>
       </section>
@@ -32,24 +32,28 @@
         <h2>Number of Players</h2>
         <div class="number-row">
           <button type="button" class="stepper-btn" @click="decrementPlayers">-</button>
-          <input v-model.number="playerCount" class="number-input" type="number" min="1" max="30" />
+          <input v-model.number="playerCount" class="number-input" type="number" min="1" :max="playerLimit" />
           <button type="button" class="stepper-btn" @click="incrementPlayers">+</button>
         </div>
         <p class="helper-text">
-          {{ selectedScenario.name }} has {{ baseRoleCount }} base roles.
-          <span v-if="customRoleSlots > 0">Add {{ customRoleSlots }} custom role{{ customRoleSlots === 1 ? '' : 's' }} for this table.</span>
+          <span v-if="isCustomScenario">
+            Add custom roles with counts until total roles reach {{ normalizedPlayerCount }}.
+          </span>
+          <span v-else>
+            {{ selectedScenario.name }} automatically selects {{ baseRoleCount }} roles for this table size.
+          </span>
         </p>
       </section>
 
       <section v-if="selectedScenario.id === 'custom'" class="section scenario-details">
         <div class="section-title-row">
           <h2>Scenario Calls</h2>
-          <span class="count-pill">{{ customRoleItems.length }} / {{ normalizedPlayerCount }}</span>
+          <span class="count-pill">{{ customRoleTotalCount }} / {{ normalizedPlayerCount }}</span>
         </div>
 
-        <div :class="['missing-role-panel', { disabled: customRoleItems.length >= normalizedPlayerCount }]">
+        <div :class="['missing-role-panel', { disabled: customRoleTotalCount >= normalizedPlayerCount }]">
           <p class="helper-text">
-            Add custom roles manually. Name, side, and description are all organizer-controlled.
+            Add custom roles manually. Each role can be added with a count.
           </p>
           <form class="custom-role-form" @submit.prevent="addCustomRole">
             <input
@@ -58,9 +62,9 @@
               placeholder="Role name"
               maxlength="40"
               class="text-input"
-              :disabled="customRoleItems.length >= normalizedPlayerCount"
+              :disabled="customRoleTotalCount >= normalizedPlayerCount"
             />
-            <select v-model="customRoleDraft.side" class="text-input" :disabled="customRoleItems.length >= normalizedPlayerCount">
+            <select v-model="customRoleDraft.side" class="text-input" :disabled="customRoleTotalCount >= normalizedPlayerCount">
               <option value="Mafia">Mafia</option>
               <option value="Town">Town</option>
               <option value="Independent">Independent</option>
@@ -71,22 +75,32 @@
               placeholder="Short description"
               maxlength="120"
               class="text-input"
-              :disabled="customRoleItems.length >= normalizedPlayerCount"
+              :disabled="customRoleTotalCount >= normalizedPlayerCount"
             />
-            <button type="submit" class="add-btn" :disabled="customRoleItems.length >= normalizedPlayerCount">
+            <input
+              v-model.number="customRoleDraft.count"
+              type="number"
+              min="1"
+              :max="Math.max(1, customRoleSlots)"
+              class="text-input count-input"
+              placeholder="Count"
+              :disabled="customRoleTotalCount >= normalizedPlayerCount"
+            />
+            <button type="submit" class="add-btn" :disabled="customRoleTotalCount >= normalizedPlayerCount">
               Add Role
             </button>
           </form>
-          <p v-if="customRoleItems.length >= normalizedPlayerCount" class="helper-text">
+          <p v-if="customRoleTotalCount >= normalizedPlayerCount" class="helper-text">
             Maximum custom roles reached.
           </p>
+          <p v-else class="helper-text">{{ customRoleSlots }} role slot{{ customRoleSlots === 1 ? '' : 's' }} remaining.</p>
         </div>
 
         <div class="rules-grid">
           <div v-for="(role, index) in customRoleItems" :key="`${role.name}-${index}`" class="rule-row">
             <div>
               <strong>{{ role.name }}</strong>
-              <span>{{ role.side }}</span>
+              <span>{{ role.side }} x{{ role.count }}</span>
             </div>
             <p v-if="role.ability">{{ role.ability }}</p>
             <button type="button" class="remove-btn remove-inline" @click="removeCustomRole(index)">Remove</button>
@@ -97,7 +111,11 @@
       <section v-else-if="selectedScenario.roleDetails?.length" class="section scenario-details">
         <div class="section-title-row">
           <h2>Scenario Calls</h2>
-          <span class="count-pill">{{ baseRoleCount }} base roles</span>
+          <span class="count-pill">{{ baseRoleCount }} selected roles</span>
+        </div>
+
+        <div class="role-tags">
+          <span v-for="role in rolePreview" :key="role.name" class="role-tag">{{ role.name }} x{{ role.count }}</span>
         </div>
 
         <div class="rules-grid">
@@ -120,56 +138,6 @@
           <p v-for="condition in selectedScenario.winConditions" :key="condition">{{ condition }}</p>
         </div>
 
-        <div v-if="customRoleSlots > 0" class="section-title-row custom-header">
-          <h2>Custom Roles</h2>
-          <span class="count-pill">{{ customRoleItems.length }} / {{ customRoleSlots }}</span>
-        </div>
-
-        <div :class="['missing-role-panel', { disabled: customRoleItems.length >= customRoleSlots }]">
-          <p class="helper-text">
-            Add custom roles for this table size. Each custom role is added on top of the scenario base roles.
-          </p>
-          <form class="custom-role-form" @submit.prevent="addCustomRole">
-            <input
-              v-model="customRoleDraft.name"
-              type="text"
-              placeholder="Role name"
-              maxlength="40"
-              class="text-input"
-              :disabled="customRoleItems.length >= customRoleSlots"
-            />
-            <select v-model="customRoleDraft.side" class="text-input" :disabled="customRoleItems.length >= customRoleSlots">
-              <option value="Mafia">Mafia</option>
-              <option value="Town">Town</option>
-              <option value="Independent">Independent</option>
-            </select>
-            <input
-              v-model="customRoleDraft.ability"
-              type="text"
-              placeholder="Short description"
-              maxlength="120"
-              class="text-input"
-              :disabled="customRoleItems.length >= customRoleSlots"
-            />
-            <button type="submit" class="add-btn" :disabled="customRoleItems.length >= customRoleSlots">
-              Add Role
-            </button>
-          </form>
-          <p v-if="customRoleItems.length >= customRoleSlots" class="helper-text">
-            Maximum custom roles reached.
-          </p>
-        </div>
-
-        <div v-if="customRoleItems.length" class="rules-grid">
-          <div v-for="(role, index) in customRoleItems" :key="`${role.name}-${index}`" class="rule-row">
-            <div>
-              <strong>{{ role.name }}</strong>
-              <span>{{ role.side }}</span>
-            </div>
-            <p v-if="role.ability">{{ role.ability }}</p>
-            <button type="button" class="remove-btn remove-inline" @click="removeCustomRole(index)">Remove</button>
-          </div>
-        </div>
       </section>
 
       <section class="section">
@@ -205,7 +173,7 @@
 
 <script>
 import { computed, ref, watch } from 'vue'
-import { SCENARIOS, getScenarioById, shuffle, summarizeRoles } from '../../scenarios.js'
+import { SCENARIOS, getRolesForPlayerCount, getScenarioById, getStandardPlayerCount, shuffle, summarizeRoles } from '../../scenarios.js'
 
 export default {
   name: 'SetupScreen',
@@ -219,36 +187,59 @@ export default {
   setup(props, { emit }) {
     const scenarios = SCENARIOS
     const selectedScenarioId = ref(SCENARIOS[0].id)
-    const initialPlayerCount = SCENARIOS[0].id === 'custom' ? 1 : SCENARIOS[0].standardRoles.length
+    const initialPlayerCount = SCENARIOS[0].id === 'custom' ? 1 : getStandardPlayerCount(SCENARIOS[0])
     const playerCount = ref(initialPlayerCount)
     const customRoleItems = ref([])
     const customRoleDraft = ref({
       name: '',
       side: 'Town',
-      ability: ''
+      ability: '',
+      count: 1
     })
     const playerNames = ref(Array.from({ length: initialPlayerCount }, () => ''))
     const errors = ref([])
 
     const selectedScenario = computed(() => getScenarioById(selectedScenarioId.value))
     const isCustomScenario = computed(() => selectedScenario.value.id === 'custom')
-    const normalizedPlayerCount = computed(() => Math.max(1, Number(playerCount.value) || 1))
+    const playerLimit = computed(() => {
+      if (isCustomScenario.value) return 30
+
+      const recommendedCounts = Object.keys(selectedScenario.value.recommendedRolesByCount || {})
+        .map(Number)
+        .filter(Number.isFinite)
+
+      if (recommendedCounts.length) {
+        return Math.max(...recommendedCounts)
+      }
+
+      return Math.max(selectedScenario.value.minPlayers || 1, getStandardPlayerCount(selectedScenario.value))
+    })
+    const normalizedPlayerCount = computed(() => {
+      const parsedCount = Number(playerCount.value) || 1
+      return Math.min(playerLimit.value, Math.max(1, parsedCount))
+    })
     const baseRoleNames = computed(() => {
       if (isCustomScenario.value) return []
-      return selectedScenario.value.standardRoles || []
+      return getRolesForPlayerCount(selectedScenario.value, normalizedPlayerCount.value)
     })
     const baseRoleCount = computed(() => {
       return isCustomScenario.value ? 0 : baseRoleNames.value.length
     })
+    const customRoleTotalCount = computed(() => {
+      return customRoleItems.value.reduce((sum, role) => sum + (Number(role.count) || 0), 0)
+    })
     const customRoleSlots = computed(() => {
-      return Math.max(0, normalizedPlayerCount.value - baseRoleCount.value)
+      if (!isCustomScenario.value) return 0
+      return Math.max(0, normalizedPlayerCount.value - customRoleTotalCount.value)
     })
     const completedRoles = computed(() => {
       if (isCustomScenario.value) {
-        return customRoleItems.value.map((role) => role.name).slice(0, normalizedPlayerCount.value)
+        return customRoleItems.value
+          .flatMap((role) => Array.from({ length: Math.max(1, Number(role.count) || 1) }, () => role.name))
+          .slice(0, normalizedPlayerCount.value)
       }
 
-      return [...baseRoleNames.value, ...customRoleItems.value.map((role) => role.name)].slice(0, normalizedPlayerCount.value)
+      return baseRoleNames.value.slice(0, normalizedPlayerCount.value)
     })
     const rolePreview = computed(() => summarizeRoles(completedRoles.value))
     const trimmedPlayerNames = computed(() => playerNames.value.map((name) => name.trim()))
@@ -269,7 +260,10 @@ export default {
       }
     }
 
-    watch(playerCount, () => {
+    watch([playerCount, playerLimit], () => {
+      if (playerCount.value !== normalizedPlayerCount.value) {
+        playerCount.value = normalizedPlayerCount.value
+      }
       syncPlayerInputs()
       errors.value = []
     })
@@ -281,13 +275,14 @@ export default {
       customRoleDraft.value = {
         name: '',
         side: 'Town',
-        ability: ''
+        ability: '',
+        count: 1
       }
-      playerCount.value = nextScenario.id === 'custom' ? 1 : nextScenario.standardRoles.length
+      playerCount.value = nextScenario.id === 'custom' ? 1 : getStandardPlayerCount(nextScenario)
     }
 
     const incrementPlayers = () => {
-      if (normalizedPlayerCount.value < 30) playerCount.value = normalizedPlayerCount.value + 1
+      if (normalizedPlayerCount.value < playerLimit.value) playerCount.value = normalizedPlayerCount.value + 1
     }
 
     const decrementPlayers = () => {
@@ -300,6 +295,7 @@ export default {
       const name = customRoleDraft.value.name.trim()
       const side = customRoleDraft.value.side
       const ability = customRoleDraft.value.ability.trim()
+      const count = Math.max(1, Math.floor(Number(customRoleDraft.value.count) || 1))
       errors.value = []
 
       if (!name) {
@@ -312,23 +308,28 @@ export default {
         return
       }
 
-      const roleLimit = isCustomScenario.value ? normalizedPlayerCount.value : customRoleSlots.value
+      if (!Number.isFinite(count) || count < 1) {
+        errors.value = ['Role count must be at least 1.']
+        return
+      }
 
-      if (customRoleItems.value.length >= roleLimit) {
-        errors.value = ['The custom role list is already complete for this player count.']
+      if (count > customRoleSlots.value) {
+        errors.value = [`Only ${customRoleSlots.value} role slot${customRoleSlots.value === 1 ? '' : 's'} remaining.`]
         return
       }
 
       customRoleItems.value.push({
         name,
         side,
-        ability
+        ability,
+        count
       })
 
       customRoleDraft.value = {
         name: '',
         side,
-        ability: ''
+        ability: '',
+        count: 1
       }
     }
 
@@ -348,8 +349,8 @@ export default {
       }
 
       if (isCustomScenario.value) {
-        if (customRoleItems.value.length !== normalizedPlayerCount.value) {
-          errors.value = [`Add exactly ${normalizedPlayerCount.value} custom roles before starting.`]
+        if (customRoleTotalCount.value !== normalizedPlayerCount.value) {
+          errors.value = [`Add custom roles totaling exactly ${normalizedPlayerCount.value} players before starting.`]
           return
         }
 
@@ -366,11 +367,6 @@ export default {
           errors.value = ['Each custom role name must be unique.']
           return
         }
-      }
-
-      if (!isCustomScenario.value && customRoleItems.value.length !== customRoleSlots.value) {
-        errors.value = [`Add exactly ${customRoleSlots.value} custom role${customRoleSlots.value === 1 ? '' : 's'} before starting.`]
-        return
       }
 
       if (completedPlayerCount.value !== normalizedPlayerCount.value) {
@@ -390,12 +386,12 @@ export default {
       const roles = shuffle(completedRoles.value)
       const mergedRoleDetails = isCustomScenario.value
         ? customRoleItems.value.map((role) => ({ ...role }))
-        : [...(selectedScenario.value.roleDetails || []), ...customRoleItems.value.map((role) => ({ ...role }))]
+        : [...(selectedScenario.value.roleDetails || [])]
       const scenarioPayload = {
         ...selectedScenario.value,
         standardRoles: isCustomScenario.value
-          ? customRoleItems.value.map((role) => role.name).slice(0, normalizedPlayerCount.value)
-          : [...baseRoleNames.value],
+          ? customRoleItems.value.map((role) => ({ ...role }))
+          : [...(selectedScenario.value.standardRoles || [])],
         roleDetails: mergedRoleDetails,
         minPlayers: isCustomScenario.value ? normalizedPlayerCount.value : selectedScenario.value.minPlayers
       }
@@ -419,7 +415,9 @@ export default {
       selectedScenario,
       playerCount,
       normalizedPlayerCount,
+      playerLimit,
       baseRoleCount,
+      customRoleTotalCount,
       customRoleSlots,
       customRoleItems,
       customRoleDraft,
@@ -433,6 +431,8 @@ export default {
       decrementPlayers,
       addCustomRole,
       removeCustomRole,
+      isCustomScenario,
+      getStandardCount: getStandardPlayerCount,
       startGame
     }
   }
@@ -611,7 +611,7 @@ h3 {
 
 .custom-role-form {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(120px, 0.7fr) minmax(0, 1.5fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.7fr) minmax(0, 1.3fr) minmax(86px, 0.45fr) auto;
   gap: 8px;
 }
 
